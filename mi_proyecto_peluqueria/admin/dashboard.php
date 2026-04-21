@@ -115,11 +115,11 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
     <aside class="sidebar">
         <div style="padding: 0 25px 20px;"><h5 style="color:var(--accent-color)">ADMIN</h5></div>
         <nav>
-            <a href="#" class="sidebar-link filter-link" data-tabla="todos">📋 Todos</a>
-            <a href="#" class="sidebar-link filter-link" data-tabla="productos">📦 Productos</a>
-            <a href="#" class="sidebar-link filter-link" data-tabla="citas">📅 Citas</a>
-            <a href="#" class="sidebar-link filter-link" data-tabla="pedidos">💰 Pedidos</a>
-            <a href="#" class="sidebar-link filter-link" data-tabla="usuarios">👥 Usuarios</a>
+            <a href="#" class="sidebar-link filter-link" data-tabla="todos"> Todos</a>
+            <a href="#" class="sidebar-link filter-link" data-tabla="productos"> Productos</a>
+            <a href="#" class="sidebar-link filter-link" data-tabla="citas"> Citas</a>
+            <a href="#" class="sidebar-link filter-link" data-tabla="pedidos"> Pedidos</a>
+            <a href="#" class="sidebar-link filter-link" data-tabla="usuarios"> Usuarios</a>
             <hr style="border-color:#333">
         </nav>
     </aside>
@@ -145,8 +145,8 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
         <!-- TABLA PRODUCTOS -->
         <div id="tabla-productos" class="salon-card seccion-tabla" style="margin-top: 30px;">
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
-                <h4>📦 Productos</h4>
-                <button id="btnMostrarForm" class="salon-btn salon-btn-accent">➕ Añadir producto</button>
+                <h2> Productos</h2>
+                <button id="btnMostrarForm" class="salon-btn salon-btn-accent"> Añadir producto</button>
             </div>
             
             <div id="formProducto" class="form-nuevo-producto">
@@ -189,7 +189,7 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
 
         <!-- TABLA CITAS -->
         <div id="tabla-citas" class="salon-card seccion-tabla" style="margin-top: 30px;">
-            <h4>📅 Citas</h4>
+            <h2> Citas</h2>
             <table class="salon-table">
                 <thead>
                     <tr><th>ID</th><th>Cliente</th><th>Servicio</th><th>Fecha</th><th>Hora</th><th>Acciones</th></tr>
@@ -211,7 +211,7 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
 
         <!-- TABLA PEDIDOS -->
         <div id="tabla-pedidos" class="salon-card seccion-tabla" style="margin-top: 30px;">
-            <h4>💰 Pedidos</h4>
+            <h2> Pedidos</h2>
             <table class="salon-table">
                 <thead>
                     <tr><th>ID Pedido</th><th>Cliente</th><th>Total</th><th>Fecha</th><th>Acciones</th></tr>
@@ -232,7 +232,7 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
 
         <!-- TABLA USUARIOS -->
         <div id="tabla-usuarios" class="salon-card seccion-tabla" style="margin-top: 30px;">
-            <h4>👥 Usuarios registrados</h4>
+            <h2> Usuarios registrados</h2>
             <table class="salon-table">
                 <thead>
                     <tr><th>ID</th><th>Nombre</th><th>Email</th><th>Rol</th></tr>
