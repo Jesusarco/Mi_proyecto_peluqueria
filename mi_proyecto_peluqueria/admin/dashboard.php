@@ -1,23 +1,32 @@
 <?php
 session_start();
 require_once "../config/database.php";
-if ($_SESSION['rol'] != 'admin') { exit("No autorizado"); }
+if (!in_array($_SESSION['rol'], ['admin', 'superadmin'])) { 
+    exit("No autorizado"); 
+}
 
 $esDashboard = true; 
 include "../includes/header.php";
 
-// CONSULTAS COMPLETAS
-$productos = $conn->query("SELECT id, nombre, precio, stock FROM productos ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
-$citas = $conn->query("SELECT c.id, u.nombre as cliente, s.nombre as servicio, c.fecha, c.hora 
+// Consultas (sin administradores)
+$productos = $conn->query("SELECT id, nombre, descripcion, precio, stock, imagen, destacado FROM productos ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
+$servicios = $conn->query("SELECT id, nombre, descripcion, precio, duracion FROM servicios ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
+$citas = $conn->query("SELECT c.id, u.nombre as cliente, s.nombre as servicio, c.fecha, c.hora, c.estado, c.notas 
                         FROM citas c
                         JOIN usuarios u ON c.usuario_id = u.id
                         JOIN servicios s ON c.servicio_id = s.id
+                        WHERE u.activo = 1
                         ORDER BY c.fecha DESC, c.hora DESC")->fetchAll(PDO::FETCH_ASSOC);
 $pedidos = $conn->query("SELECT p.id, u.nombre as cliente, p.total, p.fecha 
                          FROM pedidos p
                          JOIN usuarios u ON p.usuario_id = u.id
+                         WHERE u.activo = 1
                          ORDER BY p.fecha DESC")->fetchAll(PDO::FETCH_ASSOC);
-$usuarios = $conn->query("SELECT id, nombre, email, rol FROM usuarios ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
+$gastos = $conn->query("SELECT g.id, g.descripcion, g.categoria, g.cantidad, g.fecha, u.nombre as registrado_por
+                        FROM gastos g
+                        LEFT JOIN usuarios u ON g.usuario_id = u.id
+                        ORDER BY g.fecha DESC")->fetchAll(PDO::FETCH_ASSOC);
+$usuarios_clientes = $conn->query("SELECT id, nombre, email, fecha_creacion FROM usuarios WHERE rol = 'cliente' AND activo = 1 ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
 
 // Estadísticas
 $totalPedidos = $conn->query("SELECT COUNT(*) FROM pedidos")->fetchColumn() ?: 0;
@@ -25,89 +34,129 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
 ?>
 
 <style>
-    /* Estilos para tablas con letra GRANDE */
+    /* (Los mismos estilos que antes, sin cambios) */
     .salon-table {
         width: 100%;
         border-collapse: collapse;
         margin-top: 10px;
-        font-size: 1.1rem;  /* Tamaño base más grande */
+        font-size: 1rem;
+        table-layout: auto;
+    }
+    .salon-table th, .salon-table td {
+        padding: 12px 10px;
+        border-bottom: 1px solid #f0f0f0;
+        text-align: left;
+        vertical-align: top;
     }
     .salon-table th {
-        text-align: left;
-        padding: 14px 12px;
-        border-bottom: 2px solid #eee;
-        color: #555;
-        text-transform: uppercase;
-        font-size: 0.95rem;  /* Cabecera legible */
-        letter-spacing: 0.5px;
+        background-color: #f8f8f8;
+        font-weight: bold;
+        font-size: 0.9rem;
     }
-    .salon-table td {
-        padding: 14px 12px;
-        border-bottom: 1px solid #f0f0f0;
-        color: var(--primary-color);
-        font-size: 1rem;      /* Texto de celdas grande */
-    }
-    .salon-table tr:hover { background-color: #fcfcfc; }
-    
-    .btn-eliminar {
+    .btn-eliminar, .btn-crear {
         background: #e74c3c;
         color: white;
         border: none;
-        padding: 6px 14px;
+        padding: 6px 12px;
         border-radius: 4px;
         cursor: pointer;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         text-decoration: none;
         display: inline-block;
     }
+    .btn-crear {
+        background: var(--accent-color);
+    }
+    .btn-crear:hover { background: #b8941a; }
     .btn-eliminar:hover { background: #c0392b; }
     
-    /* Formulario nuevo producto */
-    .form-nuevo-producto {
+    .form-overlay {
         display: none;
-        background: #f9f9f9;
-        padding: 25px;
-        border-radius: 8px;
-        margin-bottom: 25px;
-        border: 1px solid #eee;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.6);
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
     }
-    .form-nuevo-producto.visible {
-        display: block;
+    .form-overlay.visible {
+        display: flex;
+    }
+    .form-container {
+        background: white;
+        padding: 25px 30px;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 550px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        box-sizing: border-box;
     }
     .form-group {
-        margin-bottom: 18px;
+        margin-bottom: 15px;
     }
     .form-group label {
         display: block;
-        margin-bottom: 6px;
+        margin-bottom: 5px;
         font-weight: bold;
-        font-size: 0.95rem;
+        font-size: 0.9rem;
     }
-    .form-group input {
+    .form-group input, .form-group textarea, .form-group select {
         width: 100%;
-        padding: 10px;
-        font-size: 0.95rem;
-        border: 1px solid #ddd;
-        border-radius: 4px;
+        padding: 8px 10px;
+        font-size: 0.9rem;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        box-sizing: border-box;
+    }
+    .form-group textarea {
+        resize: vertical;
+        min-height: 80px;
+    }
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 20px;
     }
     .salon-btn {
-        font-size: 0.95rem;
-        padding: 8px 18px;
+        font-size: 0.9rem;
+        padding: 8px 16px;
+        border-radius: 6px;
     }
-    /* Clases para mostrar/ocultar secciones */
     .seccion-tabla {
-        transition: all 0.2s ease;
+        overflow-x: auto;
+        margin-top: 30px;
     }
     .seccion-tabla.oculto {
         display: none;
     }
-    /* Ajuste para que las tarjetas no se vean apretadas */
-    .salon-card h4 {
-        font-size: 1.3rem;
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         margin-bottom: 15px;
+        flex-wrap: wrap;
     }
     .stat-card p {
-        font-size: 2.2rem !important;
+        font-size: 2rem !important;
+    }
+    .salon-card {
+        padding: 20px;
+    }
+    .imagen-tabla {
+        max-width: 60px;
+        max-height: 60px;
+    }
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .checkbox-group input {
+        width: auto;
     }
 </style>
 
@@ -115,12 +164,17 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
     <aside class="sidebar">
         <div style="padding: 0 25px 20px;"><h5 style="color:var(--accent-color)">ADMIN</h5></div>
         <nav>
-            <a href="#" class="sidebar-link filter-link" data-tabla="todos"> Todos</a>
-            <a href="#" class="sidebar-link filter-link" data-tabla="productos"> Productos</a>
-            <a href="#" class="sidebar-link filter-link" data-tabla="citas"> Citas</a>
-            <a href="#" class="sidebar-link filter-link" data-tabla="pedidos"> Pedidos</a>
-            <a href="#" class="sidebar-link filter-link" data-tabla="usuarios"> Usuarios</a>
+            <a href="#" class="sidebar-link filter-link" data-tabla="todos">Todos</a>
+            <a href="#" class="sidebar-link filter-link" data-tabla="productos">Productos</a>
+            <a href="#" class="sidebar-link filter-link" data-tabla="servicios">Servicios</a>
+            <a href="#" class="sidebar-link filter-link" data-tabla="citas">Citas</a>
+            <a href="#" class="sidebar-link filter-link" data-tabla="pedidos">Pedidos</a>
+            <a href="#" class="sidebar-link filter-link" data-tabla="gastos">Gastos</a>
+            <a href="#" class="sidebar-link filter-link" data-tabla="usuarios">Clientes</a>
             <hr style="border-color:#333">
+            <?php if ($_SESSION['rol'] == 'superadmin'): ?>
+                <a href="gestionar_admins.php" class="sidebar-link"> Gestionar Admins</a>
+            <?php endif; ?>
         </nav>
     </aside>
 
@@ -130,69 +184,75 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
             <span style="color:#888"><?= date('d M, Y') ?></span>
         </div>
 
-        <!-- Tarjetas de estadísticas -->
         <div class="salon-grid">
             <div class="salon-card stat-card">
                 <small>PEDIDOS TOTALES</small>
-                <p style="font-size:2.5rem; font-weight:bold; margin:10px 0"><?= $totalPedidos ?></p>
+                <p><?= $totalPedidos ?></p>
             </div>
             <div class="salon-card stat-card">
                 <small>INGRESOS TOTALES</small>
-                <p style="font-size:2.5rem; font-weight:bold; color:var(--accent-color); margin:10px 0"><?= number_format($totalIngresos, 2) ?> €</p>
+                <p><?= number_format($totalIngresos, 2) ?> €</p>
             </div>
         </div>
 
-        <!-- TABLA PRODUCTOS -->
-        <div id="tabla-productos" class="salon-card seccion-tabla" style="margin-top: 30px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
-                <h2> Productos</h2>
-                <button id="btnMostrarForm" class="salon-btn salon-btn-accent"> Añadir producto</button>
+        <!-- PRODUCTOS -->
+        <div id="tabla-productos" class="salon-card seccion-tabla">
+            <div class="admin-header">
+                <h4>Productos</h4>
+                <button id="btnProducto" class="btn-crear">+ Nuevo producto</button>
             </div>
-            
-            <div id="formProducto" class="form-nuevo-producto">
-                <h5>Nuevo producto</h5>
-                <form action="../ajax/crear_producto.php" method="POST">
-                    <div class="form-group">
-                        <label>Nombre:</label>
-                        <input type="text" name="nombre" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Precio (€):</label>
-                        <input type="number" step="0.01" name="precio" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Stock:</label>
-                        <input type="number" name="stock" value="0" required>
-                    </div>
-                    <button type="submit" class="salon-btn salon-btn-primary">Guardar producto</button>
-                    <button type="button" id="btnCancelarForm" class="salon-btn salon-btn-light">Cancelar</button>
-                </form>
-            </div>
-
             <table class="salon-table">
                 <thead>
-                    <tr><th>ID</th><th>Nombre</th><th>Precio</th><th>Stock</th><th>Acciones</th></tr>
+                    <tr><th>ID</th><th>Nombre</th><th>Descripción</th><th>Precio</th><th>Stock</th><th>Destacado</th><th>Imagen</th><th>Acciones</th></tr>
                 </thead>
                 <tbody>
                     <?php foreach($productos as $p): ?>
                     <tr>
                         <td><?= $p['id'] ?></td>
                         <td><?= htmlspecialchars($p['nombre']) ?></td>
+                        <td><?= htmlspecialchars(substr($p['descripcion'] ?? '', 0, 80)) ?>...</td>
                         <td><?= number_format($p['precio'], 2) ?> €</td>
                         <td><?= $p['stock'] ?></td>
-                        <td><a href="../ajax/eliminar_producto.php?id=<?= $p['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Eliminar este producto?')">Eliminar</a></td>
+                        <td><?= $p['destacado'] ? 'Sí' : 'No' ?></td>
+                        <td><?= $p['imagen'] ? '<img src="../uploads/'.$p['imagen'].'" class="imagen-tabla">' : '-' ?></td>
+                        <td><a href="../ajax/eliminar_producto.php?id=<?= $p['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Eliminar producto?')">Eliminar</a></td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
 
-        <!-- TABLA CITAS -->
-        <div id="tabla-citas" class="salon-card seccion-tabla" style="margin-top: 30px;">
-            <h2> Citas</h2>
+        <!-- SERVICIOS -->
+        <div id="tabla-servicios" class="salon-card seccion-tabla">
+            <div class="admin-header">
+                <h4>Servicios</h4>
+                <button id="btnServicio" class="btn-crear">+ Nuevo servicio</button>
+            </div>
             <table class="salon-table">
                 <thead>
-                    <tr><th>ID</th><th>Cliente</th><th>Servicio</th><th>Fecha</th><th>Hora</th><th>Acciones</th></tr>
+                    <tr><th>ID</th><th>Nombre</th><th>Descripción</th><th>Precio</th><th>Duración (min)</th><th>Acciones</th></tr>
+                </thead>
+                <tbody>
+                    <?php foreach($servicios as $s): ?>
+                    <tr>
+                        <td><?= $s['id'] ?></td>
+                        <td><?= htmlspecialchars($s['nombre']) ?></td>
+                        <td><?= htmlspecialchars(substr($s['descripcion'] ?? '', 0, 80)) ?></td>
+                        <td><?= number_format($s['precio'], 2) ?> €</td>
+                        <td><?= $s['duracion'] ?></td>
+                        <td><a href="../ajax/eliminar_servicio.php?id=<?= $s['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Eliminar servicio?')">Eliminar</a></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- CITAS -->
+        <div id="tabla-citas" class="salon-card seccion-tabla">
+            <h4>Citas</h4>
+            <table class="salon-table">
+                <thead>
+                    <tr><th>ID</th><th>Cliente</th><th>Servicio</th><th>Fecha</th><th>Hora</th><th>Estado</th><th>Notas</th><th>Acciones</th></tr>
                 </thead>
                 <tbody>
                     <?php foreach($citas as $c): ?>
@@ -202,19 +262,21 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
                         <td><?= htmlspecialchars($c['servicio']) ?></td>
                         <td><?= $c['fecha'] ?></td>
                         <td><?= $c['hora'] ?></td>
-                        <td><a href="../ajax/eliminar_cita.php?id=<?= $c['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Eliminar esta cita?')">Eliminar</a></td>
+                        <td><?= $c['estado'] ?></td>
+                        <td><?= htmlspecialchars(substr($c['notas'] ?? '', 0, 50)) ?></td>
+                        <td><a href="../ajax/eliminar_cita.php?id=<?= $c['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Cancelar cita?')">Cancelar</a></td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
 
-        <!-- TABLA PEDIDOS -->
-        <div id="tabla-pedidos" class="salon-card seccion-tabla" style="margin-top: 30px;">
-            <h2> Pedidos</h2>
+        <!-- PEDIDOS (opcional, se puede comentar si no hay tienda) -->
+        <div id="tabla-pedidos" class="salon-card seccion-tabla">
+            <h4>Pedidos</h4>
             <table class="salon-table">
                 <thead>
-                    <tr><th>ID Pedido</th><th>Cliente</th><th>Total</th><th>Fecha</th><th>Acciones</th></tr>
+                    <tr><th>ID</th><th>Cliente</th><th>Total</th><th>Fecha</th><th>Acciones</th></tr>
                 </thead>
                 <tbody>
                     <?php foreach($pedidos as $ped): ?>
@@ -223,58 +285,206 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
                         <td><?= htmlspecialchars($ped['cliente']) ?></td>
                         <td><?= number_format($ped['total'], 2) ?> €</td>
                         <td><?= date('d/m/Y H:i', strtotime($ped['fecha'])) ?></td>
-                        <td><a href="../ajax/eliminar_pedido.php?id=<?= $ped['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Eliminar este pedido?')">Eliminar</a></td>
+                        <td><a href="../ajax/eliminar_pedido.php?id=<?= $ped['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Eliminar pedido?')">Eliminar</a></td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
 
-        <!-- TABLA USUARIOS -->
-        <div id="tabla-usuarios" class="salon-card seccion-tabla" style="margin-top: 30px;">
-            <h2> Usuarios registrados</h2>
+        <!-- GASTOS -->
+        <!-- GASTOS (sin columna "Registrado por") -->
+        <div id="tabla-gastos" class="salon-card seccion-tabla">
+            <div class="admin-header">
+                <h4>Gastos</h4>
+                <button id="btnGasto" class="btn-crear">+ Nuevo gasto</button>
+            </div>
             <table class="salon-table">
                 <thead>
-                    <tr><th>ID</th><th>Nombre</th><th>Email</th><th>Rol</th></tr>
+                    <tr><th>ID</th><th>Descripción</th><th>Categoría</th><th>Cantidad</th><th>Fecha</th><th>Acciones</th></tr>
                 </thead>
                 <tbody>
-                    <?php foreach($usuarios as $u): ?>
+                    <?php foreach($gastos as $g): ?>
+                    <tr>
+                        <td><?= $g['id'] ?></td>
+                        <td><?= htmlspecialchars($g['descripcion']) ?></td>
+                        <td><?= htmlspecialchars($g['categoria'] ?? '-') ?></td>
+                        <td><?= number_format($g['cantidad'], 2) ?> €</td>
+                        <td><?= date('d/m/Y', strtotime($g['fecha'])) ?></td>
+                        <td><a href="../ajax/eliminar_gasto.php?id=<?= $g['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Eliminar gasto?')">Eliminar</a></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- CLIENTES -->
+        <div id="tabla-usuarios" class="salon-card seccion-tabla">
+            <h4>Clientes</h4>
+            <table class="salon-table">
+                <thead>
+                    <tr><th>ID</th><th>Nombre</th><th>Email</th><th>Fecha registro</th><th>Acciones</th></tr>
+                </thead>
+                <tbody>
+                    <?php foreach($usuarios_clientes as $u): ?>
                     <tr>
                         <td><?= $u['id'] ?></td>
                         <td><?= htmlspecialchars($u['nombre']) ?></td>
                         <td><?= htmlspecialchars($u['email']) ?></td>
-                        <td><?= $u['rol'] ?></td>
+                        <td><?= date('d/m/Y', strtotime($u['fecha_creacion'])) ?></td>
+                        <td><a href="../ajax/desactivar_usuario.php?id=<?= $u['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Desactivar este cliente?')">Desactivar</a></td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
+
     </div>
 </div>
 
+<!-- OVERLAY PRODUCTO -->
+<div id="overlayProducto" class="form-overlay">
+    <div class="form-container">
+        <h3>Nuevo producto</h3>
+        <form action="../ajax/crear_producto.php" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label>Nombre *</label>
+                <input type="text" name="nombre" required>
+            </div>
+            <div class="form-group">
+                <label>Descripción</label>
+                <textarea name="descripcion" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Precio (euros) *</label>
+                <input type="number" step="0.01" name="precio" required>
+            </div>
+            <div class="form-group">
+                <label>Stock</label>
+                <input type="number" name="stock" value="0">
+            </div>
+            <div class="form-group checkbox-group">
+                <label>Destacado</label>
+                <input type="checkbox" name="destacado" value="1">
+            </div>
+            <div class="form-group">
+                <label>Imagen (URL o nombre de archivo)</label>
+                <input type="text" name="imagen" placeholder="ej: producto.jpg">
+            </div>
+            <div class="form-actions">
+                <button type="button" class="salon-btn salon-btn-light cerrar">Cancelar</button>
+                <button type="submit" class="salon-btn salon-btn-accent">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- OVERLAY SERVICIO -->
+<div id="overlayServicio" class="form-overlay">
+    <div class="form-container">
+        <h3>Nuevo servicio</h3>
+        <form action="../ajax/crear_servicio.php" method="POST">
+            <div class="form-group">
+                <label>Nombre *</label>
+                <input type="text" name="nombre" required>
+            </div>
+            <div class="form-group">
+                <label>Descripción</label>
+                <textarea name="descripcion" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Precio (euros) *</label>
+                <input type="number" step="0.01" name="precio" required>
+            </div>
+            <div class="form-group">
+                <label>Duración (minutos) *</label>
+                <input type="number" name="duracion" required>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="salon-btn salon-btn-light cerrar">Cancelar</button>
+                <button type="submit" class="salon-btn salon-btn-accent">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- OVERLAY GASTO -->
+<div id="overlayGasto" class="form-overlay">
+    <div class="form-container">
+        <h3>Nuevo gasto</h3>
+        <form action="../ajax/crear_gasto.php" method="POST">
+            <div class="form-group">
+                <label>Descripción *</label>
+                <input type="text" name="descripcion" required>
+            </div>
+            <div class="form-group">
+                <label>Categoría</label>
+                <select name="categoria">
+                    <option value="">Seleccionar</option>
+                    <option value="Alquiler">Alquiler</option>
+                    <option value="Material">Material</option>
+                    <option value="Sueldos">Sueldos</option>
+                    <option value="Publicidad">Publicidad</option>
+                    <option value="Servicios">Servicios (luz, agua, etc.)</option>
+                    <option value="Otros">Otros</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Cantidad (euros) *</label>
+                <input type="number" step="0.01" name="cantidad" required>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="salon-btn salon-btn-light cerrar">Cancelar</button>
+                <button type="submit" class="salon-btn salon-btn-accent">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Eliminado el overlay de administrador -->
+
 <script>
-    // Mostrar/ocultar formulario de nuevo producto
-    const btnMostrar = document.getElementById('btnMostrarForm');
-    const formDiv = document.getElementById('formProducto');
-    const btnCancelar = document.getElementById('btnCancelarForm');
-    
-    if (btnMostrar) {
-        btnMostrar.addEventListener('click', () => {
-            formDiv.classList.toggle('visible');
-        });
+    // Overlays (sin el de admin)
+    const overlays = {
+        producto: document.getElementById('overlayProducto'),
+        servicio: document.getElementById('overlayServicio'),
+        gasto: document.getElementById('overlayGasto')
+    };
+    const btns = {
+        producto: document.getElementById('btnProducto'),
+        servicio: document.getElementById('btnServicio'),
+        gasto: document.getElementById('btnGasto')
+    };
+    const cerrarBtns = document.querySelectorAll('.cerrar');
+
+    function abrirOverlay(nombre) {
+        if (overlays[nombre]) overlays[nombre].classList.add('visible');
     }
-    if (btnCancelar) {
-        btnCancelar.addEventListener('click', () => {
-            formDiv.classList.remove('visible');
-        });
+    function cerrarOverlays() {
+        for (let key in overlays) {
+            if (overlays[key]) overlays[key].classList.remove('visible');
+        }
     }
 
-    // Filtrar tablas y cambio de clase activa en el menú
+    if (btns.producto) btns.producto.addEventListener('click', () => abrirOverlay('producto'));
+    if (btns.servicio) btns.servicio.addEventListener('click', () => abrirOverlay('servicio'));
+    if (btns.gasto) btns.gasto.addEventListener('click', () => abrirOverlay('gasto'));
+
+    cerrarBtns.forEach(btn => btn.addEventListener('click', cerrarOverlays));
+    window.addEventListener('click', (e) => {
+        for (let key in overlays) {
+            if (e.target === overlays[key]) cerrarOverlays();
+        }
+    });
+
+    // Filtros laterales (sin administradores)
     const filterLinks = document.querySelectorAll('.filter-link');
     const secciones = {
         productos: document.getElementById('tabla-productos'),
+        servicios: document.getElementById('tabla-servicios'),
         citas: document.getElementById('tabla-citas'),
         pedidos: document.getElementById('tabla-pedidos'),
+        gastos: document.getElementById('tabla-gastos'),
         usuarios: document.getElementById('tabla-usuarios')
     };
 
@@ -283,13 +493,11 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
             if (secciones[key]) secciones[key].classList.remove('oculto');
         }
     }
-
     function ocultarTodas() {
         for (let key in secciones) {
             if (secciones[key]) secciones[key].classList.add('oculto');
         }
     }
-
     function setActiveLink(link) {
         filterLinks.forEach(l => l.classList.remove('active'));
         link.classList.add('active');
@@ -303,19 +511,16 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
                 mostrarTodas();
             } else {
                 ocultarTodas();
-                if (secciones[tabla]) {
-                    secciones[tabla].classList.remove('oculto');
-                }
+                if (secciones[tabla]) secciones[tabla].classList.remove('oculto');
             }
             setActiveLink(link);
         });
     });
 
-    // Al cargar, mostrar todas y activar Dashboard si no hay activo
     mostrarTodas();
     if (!document.querySelector('.filter-link.active')) {
-        const dashboardLink = document.querySelector('.filter-link[data-tabla="todos"]');
-        if (dashboardLink) dashboardLink.classList.add('active');
+        const todos = document.querySelector('.filter-link[data-tabla="todos"]');
+        if (todos) todos.classList.add('active');
     }
 </script>
 

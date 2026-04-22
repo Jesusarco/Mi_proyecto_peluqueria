@@ -1,0 +1,129 @@
+<?php
+session_start();
+require_once "../config/database.php";
+
+// Solo superadmin puede gestionar admins
+if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 'superadmin') {
+    header("Location: dashboard.php?error=No tienes permisos para gestionar administradores");
+    exit();
+}
+
+$esDashboard = true; 
+include "../includes/header.php";
+
+// Consultar todos los administradores (incluyendo superadmins)
+$admins = $conn->query("SELECT id, nombre, email, rol, fecha_creacion FROM usuarios WHERE rol IN ('admin', 'superadmin') ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
+?>
+
+<style>
+    .salon-table { width: 100%; border-collapse: collapse; }
+    .salon-table th, .salon-table td { padding: 12px 10px; border-bottom: 1px solid #eee; text-align: left; }
+    .salon-table th { background: #f8f8f8; }
+    .btn-eliminar, .btn-convertir { background: #e74c3c; color: white; padding: 5px 12px; border-radius: 4px; text-decoration: none; display: inline-block; font-size: 0.8rem; margin-right: 5px; }
+    .btn-convertir { background: var(--accent-color); }
+    .btn-crear { background: var(--accent-color); color: white; padding: 8px 16px; border-radius: 4px; text-decoration: none; display: inline-block; }
+    .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .form-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
+    .form-overlay.visible { display: flex; }
+    .form-container { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 450px; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+    .form-group input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; }
+    .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+    .salon-btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; }
+    .salon-btn-light { background: #ccc; }
+    .salon-btn-accent { background: var(--accent-color); color: white; }
+</style>
+
+<div class="dashboard-wrapper">
+    <aside class="sidebar">
+        <div style="padding: 0 25px 20px;"><h5 style="color:var(--accent-color)">ADMIN</h5></div>
+        <nav>
+            <a href="dashboard.php" class="sidebar-link">Dashboard</a>
+            <a href="gestionar_admins.php" class="sidebar-link active">Administradores</a>
+            <hr style="border-color:#333">
+        </nav>
+    </aside>
+
+    <div class="content-area">
+        <div class="admin-header">
+            <h2>Gestión de Administradores</h2>
+            <button id="btnCrearAdmin" class="btn-crear">+ Nuevo administrador</button>
+        </div>
+
+        <div class="salon-card">
+            <?php if (isset($_GET['success'])): ?>
+                <div style="background: #d4edda; color: #155724; padding: 10px; margin-bottom: 15px; border-radius: 4px;"><?= htmlspecialchars($_GET['success']) ?></div>
+            <?php endif; ?>
+            <?php if (isset($_GET['error'])): ?>
+                <div style="background: #f8d7da; color: #721c24; padding: 10px; margin-bottom: 15px; border-radius: 4px;"><?= htmlspecialchars($_GET['error']) ?></div>
+            <?php endif; ?>
+
+            <table class="salon-table">
+                <thead>
+                    <tr><th>ID</th><th>Nombre</th><th>Email</th><th>Rol</th><th>Fecha registro</th><th>Acciones</th></tr>
+                </thead>
+                <tbody>
+                    <?php foreach($admins as $admin): ?>
+                    <tr>
+                        <td><?= $admin['id'] ?></td>
+                        <td><?= htmlspecialchars($admin['nombre']) ?></td>
+                        <td><?= htmlspecialchars($admin['email']) ?></td>
+                        <td><?= $admin['rol'] == 'superadmin' ? 'Superadmin' : 'Admin' ?></td>
+                        <td><?= date('d/m/Y', strtotime($admin['fecha_creacion'])) ?></td>
+                        <td>
+                            <?php if ($admin['id'] != $_SESSION['usuario_id']): ?>
+                                <?php if ($admin['rol'] == 'admin'): ?>
+                                    <a href="../ajax/cambiar_rol_admin.php?id=<?= $admin['id'] ?>&accion=ascender" class="btn-convertir" onclick="return confirm('¿Convertir este administrador en Superadmin?')">Ascender</a>
+                                <?php elseif ($admin['rol'] == 'superadmin'): ?>
+                                    <a href="../ajax/cambiar_rol_admin.php?id=<?= $admin['id'] ?>&accion=descender" class="btn-convertir" onclick="return confirm('¿Revocar Superadmin a este usuario? Pasará a ser administrador normal.')">Descender</a>
+                                <?php endif; ?>
+                                <a href="../ajax/eliminar_usuario.php?id=<?= $admin['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Eliminar este administrador?')">Eliminar</a>
+                            <?php else: ?>
+                                <span style="color:#888;">(Tú)</span>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Overlay para crear administrador -->
+<div id="overlayAdmin" class="form-overlay">
+    <div class="form-container">
+        <h3>Nuevo administrador</h3>
+        <form action="../ajax/crear_admin.php" method="POST">
+            <div class="form-group">
+                <label>Nombre completo *</label>
+                <input type="text" name="nombre" required>
+            </div>
+            <div class="form-group">
+                <label>Email *</label>
+                <input type="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label>Contraseña *</label>
+                <input type="password" name="password" required>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="salon-btn salon-btn-light cerrar">Cancelar</button>
+                <button type="submit" class="salon-btn salon-btn-accent">Crear administrador</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const overlay = document.getElementById('overlayAdmin');
+    const btn = document.getElementById('btnCrearAdmin');
+    const cerrarBtns = document.querySelectorAll('.cerrar');
+
+    btn.addEventListener('click', () => overlay.classList.add('visible'));
+    cerrarBtns.forEach(btn => btn.addEventListener('click', () => overlay.classList.remove('visible')));
+    window.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('visible'); });
+</script>
+
+<?php include "../includes/footer.php"; ?>
