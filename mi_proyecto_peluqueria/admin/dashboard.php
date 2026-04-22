@@ -17,11 +17,18 @@ $citas = $conn->query("SELECT c.id, u.nombre as cliente, s.nombre as servicio, c
                         JOIN servicios s ON c.servicio_id = s.id
                         WHERE u.activo = 1
                         ORDER BY c.fecha DESC, c.hora DESC")->fetchAll(PDO::FETCH_ASSOC);
-$pedidos = $conn->query("SELECT p.id, u.nombre as cliente, p.total, p.fecha 
-                         FROM pedidos p
-                         JOIN usuarios u ON p.usuario_id = u.id
-                         WHERE u.activo = 1
-                         ORDER BY p.fecha DESC")->fetchAll(PDO::FETCH_ASSOC);
+$pedidos = $conn->query("
+    SELECT p.id, u.nombre as cliente, p.total, p.fecha,
+           GROUP_CONCAT(pr.nombre ORDER BY pr.id SEPARATOR ', ') as productos,
+           GROUP_CONCAT(dp.cantidad ORDER BY pr.id SEPARATOR ', ') as cantidades
+    FROM pedidos p
+    JOIN usuarios u ON p.usuario_id = u.id
+    LEFT JOIN detalle_pedido dp ON p.id = dp.pedido_id
+    LEFT JOIN productos pr ON dp.producto_id = pr.id
+    WHERE u.activo = 1
+    GROUP BY p.id
+    ORDER BY p.fecha DESC
+")->fetchAll(PDO::FETCH_ASSOC);
 $gastos = $conn->query("SELECT g.id, g.descripcion, g.categoria, g.cantidad, g.fecha, u.nombre as registrado_por
                         FROM gastos g
                         LEFT JOIN usuarios u ON g.usuario_id = u.id
@@ -391,13 +398,15 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
             </div>
             <table class="salon-table">
                 <thead>
-                    <tr><th>ID</th><th>Cliente</th><th>Total</th><th>Fecha</th><th>Acciones</th></tr>
+                    <tr><th>ID</th><th>Cliente</th><th>Productos</th><th>Cantidad</th><th>Total</th><th>Fecha</th><th>Acciones</th></tr>
                 </thead>
                 <tbody>
                     <?php foreach($pedidos as $ped): ?>
                     <tr>
                         <td>#<?= $ped['id'] ?></td>
                         <td><?= htmlspecialchars($ped['cliente']) ?></td>
+                        <td><?= htmlspecialchars($ped['productos'] ?? 'Sin productos') ?></td>
+                        <td><?= htmlspecialchars($ped['cantidades'] ?? '-') ?></td>
                         <td><?= number_format($ped['total'], 2) ?> €</td>
                         <td><?= date('d/m/Y H:i', strtotime($ped['fecha'])) ?></td>
                         <td><a href="../ajax/eliminar_pedido.php?id=<?= $ped['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Eliminar pedido?')">Eliminar</a></td>

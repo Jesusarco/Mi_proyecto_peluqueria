@@ -22,6 +22,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['rol'] = $usuario['rol'];
             $_SESSION['nombre'] = $usuario['nombre'];
 
+            //Redirección en fución del rol
             $redirect = ($usuario['rol'] == 'admin' || $usuario['rol'] == 'superadmin') ? '../admin/dashboard.php' : '../user/inicio.php';
             header("Location: $redirect");
             exit();

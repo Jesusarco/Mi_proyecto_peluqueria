@@ -3,7 +3,7 @@ DROP DATABASE IF EXISTS peluqueria_db;
 CREATE DATABASE peluqueria_db;
 USE peluqueria_db;
 
--- 1. Tabla usuarios (con borrado lógico)
+-- 1. Tabla usuarios 
 CREATE TABLE usuarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
@@ -23,7 +23,7 @@ CREATE TABLE servicios (
     duracion INT NOT NULL
 );
 
--- 3. Tabla citas (con notas y sin ON DELETE CASCADE)
+-- 3. Tabla citas 
 CREATE TABLE citas (
     id INT AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT NOT NULL,
@@ -36,7 +36,7 @@ CREATE TABLE citas (
     FOREIGN KEY (servicio_id) REFERENCES servicios(id) ON DELETE RESTRICT
 );
 
--- 4. Tabla productos (con destacado)
+-- 4. Tabla productos 
 CREATE TABLE productos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
@@ -47,7 +47,7 @@ CREATE TABLE productos (
     destacado BOOLEAN DEFAULT FALSE
 );
 
--- 5. Tabla pedidos (sin CASCADE)
+-- 5. Tabla pedidos 
 CREATE TABLE pedidos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT NOT NULL,
@@ -56,18 +56,18 @@ CREATE TABLE pedidos (
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE RESTRICT
 );
 
--- 6. Tabla detalle_pedido (sin CASCADE)
+-- 6. Tabla detalle_pedido 
 CREATE TABLE detalle_pedido (
     id INT AUTO_INCREMENT PRIMARY KEY,
     pedido_id INT NOT NULL,
     producto_id INT NOT NULL,
     cantidad INT NOT NULL,
     precio DECIMAL(10,2) NOT NULL,
-    FOREIGN KEY (pedido_id) REFERENCES pedidos(id) ON DELETE RESTRICT,
+    FOREIGN KEY (pedido_id) REFERENCES pedidos(id) ON DELETE CASCADE,
     FOREIGN KEY (producto_id) REFERENCES productos(id) ON DELETE RESTRICT
 );
 
--- 7. Tabla gastos (mejorada)
+-- 7. Tabla gastos 
 CREATE TABLE gastos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     descripcion VARCHAR(255) NOT NULL,
