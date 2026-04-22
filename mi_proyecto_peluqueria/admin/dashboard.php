@@ -63,12 +63,42 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
         font-size: 0.85rem;
         text-decoration: none;
         display: inline-block;
+        margin-right: 5px;
+        font-family: inherit;
+        line-height: normal;
     }
     .btn-crear {
         background: var(--accent-color);
     }
     .btn-crear:hover { background: #b8941a; }
     .btn-eliminar:hover { background: #c0392b; }
+
+    /* Botones de editar y eliminar unificados */
+    .btn-editar, .btn-editar-servicio, .btn-editar-gasto, .btn-eliminar {
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        text-decoration: none;
+        display: inline-block;
+        margin-right: 5px;
+        font-family: inherit;
+        line-height: normal;
+    }
+    .btn-eliminar {
+        background: #e74c3c;
+    }
+    .btn-eliminar:hover {
+        background: #c0392b;
+    }
+    .btn-editar, .btn-editar-servicio, .btn-editar-gasto {
+        background: #3498db;
+    }
+    .btn-editar:hover, .btn-editar-servicio:hover, .btn-editar-gasto:hover {
+        background: #2980b9;
+    }
     
     .form-overlay {
         display: none;
@@ -158,6 +188,66 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
     .checkbox-group input {
         width: auto;
     }
+
+    .btn-editar, .btn-editar-servicio, .btn-editar-gasto {
+        background: #3498db;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        text-decoration: none;
+        display: inline-block;
+    }
+    .btn-editar:hover { background: #2980b9; }
+
+    /* Cabecera de cada tabla con título, buscador centrado y botón */
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+    .admin-header .filtro-wrapper {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+    }
+    .admin-header .filtro-tabla {
+        width: 260px;
+        max-width: 100%;
+        padding: 8px 15px;
+        border: 1px solid #ddd;
+        border-radius: 30px;
+        font-size: 0.85rem;
+        outline: none;
+        transition: all 0.2s;
+    }
+    .admin-header .filtro-tabla:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 2px rgba(212,175,55,0.2);
+    }
+    .admin-header .btn-crear {
+        margin-left: auto;
+    }
+    /* Para pantallas pequeñas, que no se rompa */
+    @media (max-width: 700px) {
+        .admin-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .admin-header .filtro-wrapper {
+            order: 2;
+            margin: 10px 0;
+        }
+        .admin-header .btn-crear {
+            order: 3;
+            align-self: flex-end;
+        }
+    }
 </style>
 
 <div class="dashboard-wrapper">
@@ -199,6 +289,9 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
         <div id="tabla-productos" class="salon-card seccion-tabla">
             <div class="admin-header">
                 <h4>Productos</h4>
+                <div class="filtro-wrapper">
+                    <input type="text" class="filtro-tabla" data-tabla="productos" placeholder=" Buscar...">
+                </div>
                 <button id="btnProducto" class="btn-crear">+ Nuevo producto</button>
             </div>
             <table class="salon-table">
@@ -215,7 +308,10 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
                         <td><?= $p['stock'] ?></td>
                         <td><?= $p['destacado'] ? 'Sí' : 'No' ?></td>
                         <td><?= $p['imagen'] ? '<img src="../uploads/'.$p['imagen'].'" class="imagen-tabla">' : '-' ?></td>
-                        <td><a href="../ajax/eliminar_producto.php?id=<?= $p['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Eliminar producto?')">Eliminar</a></td>
+                        <td>
+                            <button class="btn-editar" data-id="<?= $p['id'] ?>" data-nombre="<?= htmlspecialchars($p['nombre']) ?>" data-descripcion="<?= htmlspecialchars($p['descripcion'] ?? '') ?>" data-precio="<?= $p['precio'] ?>" data-stock="<?= $p['stock'] ?>" data-destacado="<?= $p['destacado'] ?>" data-imagen="<?= htmlspecialchars($p['imagen'] ?? '') ?>">Editar</button>
+                            <a href="../ajax/eliminar_producto.php?id=<?= $p['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Eliminar producto?')">Eliminar</a>
+                        </td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -226,6 +322,9 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
         <div id="tabla-servicios" class="salon-card seccion-tabla">
             <div class="admin-header">
                 <h4>Servicios</h4>
+                <div class="filtro-wrapper">
+                    <input type="text" class="filtro-tabla" data-tabla="servicios" placeholder=" Buscar...">
+                </div>
                 <button id="btnServicio" class="btn-crear">+ Nuevo servicio</button>
             </div>
             <table class="salon-table">
@@ -240,7 +339,10 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
                         <td><?= htmlspecialchars(substr($s['descripcion'] ?? '', 0, 80)) ?></td>
                         <td><?= number_format($s['precio'], 2) ?> €</td>
                         <td><?= $s['duracion'] ?></td>
-                        <td><a href="../ajax/eliminar_servicio.php?id=<?= $s['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Eliminar servicio?')">Eliminar</a></td>
+                        <td>
+                            <button class="btn-editar-servicio" data-id="<?= $s['id'] ?>" data-nombre="<?= htmlspecialchars($s['nombre']) ?>" data-descripcion="<?= htmlspecialchars($s['descripcion'] ?? '') ?>" data-precio="<?= $s['precio'] ?>" data-duracion="<?= $s['duracion'] ?>">Editar</button>
+                            <a href="../ajax/eliminar_servicio.php?id=<?= $s['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Eliminar servicio?')">Eliminar</a>
+                        </td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -249,7 +351,14 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
 
         <!-- CITAS -->
         <div id="tabla-citas" class="salon-card seccion-tabla">
-            <h4>Citas</h4>
+            <div class="admin-header">
+                <h4>Citas</h4>
+                <div class="filtro-wrapper">
+                    <input type="text" class="filtro-tabla" data-tabla="citas" placeholder=" Buscar...">
+                </div>
+                <!-- No hay botón, se puede dejar vacío o añadir un div invisible para mantener el centrado -->
+                <div style="width: 130px;"></div> <!-- opcional para equilibrar -->
+            </div>
             <table class="salon-table">
                 <thead>
                     <tr><th>ID</th><th>Cliente</th><th>Servicio</th><th>Fecha</th><th>Hora</th><th>Estado</th><th>Notas</th><th>Acciones</th></tr>
@@ -273,7 +382,13 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
 
         <!-- PEDIDOS (opcional, se puede comentar si no hay tienda) -->
         <div id="tabla-pedidos" class="salon-card seccion-tabla">
-            <h4>Pedidos</h4>
+            <div class="admin-header">
+                <h4>Pedidos</h4>
+                <div class="filtro-wrapper">
+                    <input type="text" class="filtro-tabla" data-tabla="pedidos" placeholder=" Buscar...">
+                </div>
+                <div style="width: 130px;"></div>
+            </div>
             <table class="salon-table">
                 <thead>
                     <tr><th>ID</th><th>Cliente</th><th>Total</th><th>Fecha</th><th>Acciones</th></tr>
@@ -293,11 +408,13 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
         </div>
 
         <!-- GASTOS -->
-        <!-- GASTOS (sin columna "Registrado por") -->
         <div id="tabla-gastos" class="salon-card seccion-tabla">
             <div class="admin-header">
                 <h4>Gastos</h4>
-                <button id="btnGasto" class="btn-crear">+ Nuevo gasto</button>
+                <div class="filtro-wrapper">
+                    <input type="text" class="filtro-tabla" data-tabla="gastos" placeholder=" Buscar...">
+                </div>
+                <button id="btnServicio" class="btn-crear">+ Nuevo gasto</button>
             </div>
             <table class="salon-table">
                 <thead>
@@ -311,7 +428,10 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
                         <td><?= htmlspecialchars($g['categoria'] ?? '-') ?></td>
                         <td><?= number_format($g['cantidad'], 2) ?> €</td>
                         <td><?= date('d/m/Y', strtotime($g['fecha'])) ?></td>
-                        <td><a href="../ajax/eliminar_gasto.php?id=<?= $g['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Eliminar gasto?')">Eliminar</a></td>
+                        <td>
+                            <button class="btn-editar-gasto" data-id="<?= $g['id'] ?>" data-descripcion="<?= htmlspecialchars($g['descripcion']) ?>" data-categoria="<?= htmlspecialchars($g['categoria'] ?? '') ?>" data-cantidad="<?= $g['cantidad'] ?>">Editar</button>
+                            <a href="../ajax/eliminar_gasto.php?id=<?= $g['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Eliminar gasto?')">Eliminar</a>
+                        </td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -320,7 +440,13 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
 
         <!-- CLIENTES -->
         <div id="tabla-usuarios" class="salon-card seccion-tabla">
-            <h4>Clientes</h4>
+            <div class="admin-header">
+                <h4>Clientes</h4>
+                <div class="filtro-wrapper">
+                    <input type="text" class="filtro-tabla" data-tabla="clientes" placeholder=" Buscar...">
+                </div>
+                <div style="width: 130px;"></div>
+            </div>
             <table class="salon-table">
                 <thead>
                     <tr><th>ID</th><th>Nombre</th><th>Email</th><th>Fecha registro</th><th>Acciones</th></tr>
@@ -342,7 +468,7 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
     </div>
 </div>
 
-<!-- OVERLAY PRODUCTO -->
+<!-- OVERLAY PONER NUEVO PRODUCTO -->
 <div id="overlayProducto" class="form-overlay">
     <div class="form-container">
         <h3>Nuevo producto</h3>
@@ -368,8 +494,9 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
                 <input type="checkbox" name="destacado" value="1">
             </div>
             <div class="form-group">
-                <label>Imagen (URL o nombre de archivo)</label>
-                <input type="text" name="imagen" placeholder="ej: producto.jpg">
+                <label>Imagen (subir archivo)</label>
+                <input type="file" name="imagen" accept="image/jpeg,image/png,image/jpg,image/gif">
+                <small style="color:#888; display:block; margin-top:4px;">Formatos: JPG, PNG, GIF. Tamaño máximo: 2MB</small>
             </div>
             <div class="form-actions">
                 <button type="button" class="salon-btn salon-btn-light cerrar">Cancelar</button>
@@ -441,10 +568,113 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
     </div>
 </div>
 
-<!-- Eliminado el overlay de administrador -->
+<!-- Overlay EDITAR PRODUCTO -->
+<div id="overlayEditarProducto" class="form-overlay">
+    <div class="form-container">
+        <h3>Editar producto</h3>
+        <form action="../ajax/actualizar_producto.php" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="id" id="edit_prod_id">
+            <div class="form-group">
+                <label>Nombre *</label>
+                <input type="text" name="nombre" id="edit_prod_nombre" required>
+            </div>
+            <div class="form-group">
+                <label>Descripción</label>
+                <textarea name="descripcion" id="edit_prod_descripcion" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Precio (euros) *</label>
+                <input type="number" step="0.01" name="precio" id="edit_prod_precio" required>
+            </div>
+            <div class="form-group">
+                <label>Stock</label>
+                <input type="number" name="stock" id="edit_prod_stock">
+            </div>
+            <div class="form-group checkbox-group">
+                <label>Destacado</label>
+                <input type="checkbox" name="destacado" id="edit_prod_destacado" value="1">
+            </div>
+            <div class="form-group">
+                <label>Imagen actual</label><br>
+                <img id="edit_prod_img_actual" src="" style="max-width: 100px; max-height: 100px; margin-bottom: 10px; display: none;">
+                <span id="edit_prod_sin_imagen" style="display: none;">Sin imagen</span>
+            </div>
+            <div class="form-group">
+                <label>Cambiar imagen (opcional)</label>
+                <input type="file" name="imagen" accept="image/jpeg,image/png,image/jpg,image/gif">
+                <small>Si no selecciona una nueva, se mantiene la actual.</small>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="salon-btn salon-btn-light cerrar-editar">Cancelar</button>
+                <button type="submit" class="salon-btn salon-btn-accent">Guardar cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="overlayEditarServicio" class="form-overlay">
+    <div class="form-container">
+        <h3>Editar servicio</h3>
+        <form action="../ajax/actualizar_servicio.php" method="POST">
+            <input type="hidden" name="id" id="edit_serv_id">
+            <div class="form-group">
+                <label>Nombre *</label>
+                <input type="text" name="nombre" id="edit_serv_nombre" required>
+            </div>
+            <div class="form-group">
+                <label>Descripción</label>
+                <textarea name="descripcion" id="edit_serv_descripcion" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Precio (euros) *</label>
+                <input type="number" step="0.01" name="precio" id="edit_serv_precio" required>
+            </div>
+            <div class="form-group">
+                <label>Duración (minutos) *</label>
+                <input type="number" name="duracion" id="edit_serv_duracion" required>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="salon-btn salon-btn-light cerrar-editar">Cancelar</button>
+                <button type="submit" class="salon-btn salon-btn-accent">Guardar cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="overlayEditarGasto" class="form-overlay">
+    <div class="form-container">
+        <h3>Editar gasto</h3>
+        <form action="../ajax/actualizar_gasto.php" method="POST">
+            <input type="hidden" name="id" id="edit_gasto_id">
+            <div class="form-group">
+                <label>Descripción *</label>
+                <input type="text" name="descripcion" id="edit_gasto_descripcion" required>
+            </div>
+            <div class="form-group">
+                <label>Categoría</label>
+                <select name="categoria" id="edit_gasto_categoria">
+                    <option value="">Seleccionar</option>
+                    <option value="Alquiler">Alquiler</option>
+                    <option value="Material">Material</option>
+                    <option value="Sueldos">Sueldos</option>
+                    <option value="Publicidad">Publicidad</option>
+                    <option value="Servicios">Servicios (luz, agua, etc.)</option>
+                    <option value="Otros">Otros</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Cantidad (euros) *</label>
+                <input type="number" step="0.01" name="cantidad" id="edit_gasto_cantidad" required>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="salon-btn salon-btn-light cerrar-editar">Cancelar</button>
+                <button type="submit" class="salon-btn salon-btn-accent">Guardar cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <script>
-    // Overlays (sin el de admin)
     const overlays = {
         producto: document.getElementById('overlayProducto'),
         servicio: document.getElementById('overlayServicio'),
@@ -522,6 +752,117 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
         const todos = document.querySelector('.filter-link[data-tabla="todos"]');
         if (todos) todos.classList.add('active');
     }
+
+
+// Editar producto
+const editProdBtns = document.querySelectorAll('.btn-editar');
+const overlayEditProd = document.getElementById('overlayEditarProducto');
+if (editProdBtns.length) {
+    editProdBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.getElementById('edit_prod_id').value = btn.dataset.id;
+            document.getElementById('edit_prod_nombre').value = btn.dataset.nombre;
+            document.getElementById('edit_prod_descripcion').value = btn.dataset.descripcion;
+            document.getElementById('edit_prod_precio').value = btn.dataset.precio;
+            document.getElementById('edit_prod_stock').value = btn.dataset.stock;
+            document.getElementById('edit_prod_destacado').checked = (btn.dataset.destacado == '1');
+
+            // Mostrar imagen actual
+            const imgActual = document.getElementById('edit_prod_img_actual');
+            const sinImg = document.getElementById('edit_prod_sin_imagen');
+            if (btn.dataset.imagen && btn.dataset.imagen !== '') {
+                imgActual.src = '../uploads/' + btn.dataset.imagen;
+                imgActual.style.display = 'block';
+                sinImg.style.display = 'none';
+            } else {
+                imgActual.style.display = 'none';
+                sinImg.style.display = 'block';
+            }
+
+            overlayEditProd.classList.add('visible');
+        });
+    });
+}
+
+// Editar servicio
+const editServBtns = document.querySelectorAll('.btn-editar-servicio');
+const overlayEditServ = document.getElementById('overlayEditarServicio');
+if (editServBtns.length) {
+    editServBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.getElementById('edit_serv_id').value = btn.dataset.id;
+            document.getElementById('edit_serv_nombre').value = btn.dataset.nombre;
+            document.getElementById('edit_serv_descripcion').value = btn.dataset.descripcion;
+            document.getElementById('edit_serv_precio').value = btn.dataset.precio;
+            document.getElementById('edit_serv_duracion').value = btn.dataset.duracion;
+            overlayEditServ.classList.add('visible');
+        });
+    });
+}
+
+// Editar gasto
+const editGastoBtns = document.querySelectorAll('.btn-editar-gasto');
+const overlayEditGasto = document.getElementById('overlayEditarGasto');
+if (editGastoBtns.length) {
+    editGastoBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.getElementById('edit_gasto_id').value = btn.dataset.id;
+            document.getElementById('edit_gasto_descripcion').value = btn.dataset.descripcion;
+            document.getElementById('edit_gasto_categoria').value = btn.dataset.categoria;
+            document.getElementById('edit_gasto_cantidad').value = btn.dataset.cantidad;
+            overlayEditGasto.classList.add('visible');
+        });
+    });
+}
+
+// Cerrar overlays de edición
+const cerrarEditBtns = document.querySelectorAll('.cerrar-editar');
+cerrarEditBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        overlayEditProd.classList.remove('visible');
+        overlayEditServ.classList.remove('visible');
+        overlayEditGasto.classList.remove('visible');
+    });
+});
+window.addEventListener('click', (e) => {
+    if (e.target === overlayEditProd) overlayEditProd.classList.remove('visible');
+    if (e.target === overlayEditServ) overlayEditServ.classList.remove('visible');
+    if (e.target === overlayEditGasto) overlayEditGasto.classList.remove('visible');
+});
+
+// Filtrar tablas en tiempo real
+function filtrarTabla(input, tablaId) {
+    const filtro = input.value.toLowerCase();
+    const tabla = document.getElementById(tablaId);
+    if (!tabla) return;
+    const filas = tabla.querySelectorAll('tbody tr');
+    filas.forEach(fila => {
+        const texto = fila.innerText.toLowerCase();
+        if (texto.includes(filtro)) {
+            fila.style.display = '';
+        } else {
+            fila.style.display = 'none';
+        }
+    });
+}
+
+// Asignar evento a cada filtro
+const filtros = document.querySelectorAll('.filtro-tabla');
+filtros.forEach(filtro => {
+    const tablaId = filtro.getAttribute('data-tabla');
+    // Mapear data-tabla al ID real de la tabla contenedora
+    let idReal = '';
+    switch (tablaId) {
+        case 'productos': idReal = 'tabla-productos'; break;
+        case 'servicios': idReal = 'tabla-servicios'; break;
+        case 'citas': idReal = 'tabla-citas'; break;
+        case 'pedidos': idReal = 'tabla-pedidos'; break;
+        case 'gastos': idReal = 'tabla-gastos'; break;
+        case 'clientes': idReal = 'tabla-usuarios'; break;
+        default: idReal = 'tabla-' + tablaId;
+    }
+    filtro.addEventListener('keyup', () => filtrarTabla(filtro, idReal));
+});
 </script>
 
 <?php include "../includes/footer.php"; ?>

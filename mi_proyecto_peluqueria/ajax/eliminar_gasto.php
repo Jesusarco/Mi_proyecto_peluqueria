@@ -9,7 +9,7 @@ if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 'superadmin') {
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if ($id > 0) {
-    $stmt = $conn->prepare("DELETE FROM productos WHERE id = :id");
+    $stmt = $conn->prepare("DELETE FROM gastos WHERE id = :id");
     $stmt->execute([":id" => $id]);
 }
 header("Location: ../admin/dashboard.php");

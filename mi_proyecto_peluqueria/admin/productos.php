@@ -2,9 +2,7 @@
 session_start();
 require_once "../config/database.php";
 
-if ($_SESSION['rol'] != 'admin') {
-    exit("No autorizado");
-}
+if (!in_array($_SESSION['rol'], ['admin', 'superadmin'])) { exit("No autorizado"); }
 
 $productos = $conn->query("SELECT * FROM productos")->fetchAll(PDO::FETCH_ASSOC);
 

@@ -2,8 +2,7 @@
 session_start();
 require_once "../config/database.php";
 
-// Solo administradores pueden crear gastos
-if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 'admin') {
+if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 'superadmin') {
     header("Location: ../admin/dashboard.php?error=No autorizado");
     exit();
 }

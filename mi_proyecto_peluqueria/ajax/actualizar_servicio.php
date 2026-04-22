@@ -2,20 +2,21 @@
 session_start();
 require_once "../config/database.php";
 
-if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 'superadmin') {
+if (!in_array($_SESSION['rol'], ['admin', 'superadmin'])) {
     header("Location: ../admin/dashboard.php?error=No autorizado");
     exit();
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $id = (int)$_POST['id'];
     $nombre = trim(htmlspecialchars($_POST['nombre']));
     $descripcion = trim(htmlspecialchars($_POST['descripcion'] ?? ''));
     $precio = (float)$_POST['precio'];
     $duracion = (int)$_POST['duracion'];
 
-    if ($nombre && $precio > 0 && $duracion > 0) {
-        $stmt = $conn->prepare("INSERT INTO servicios (nombre, descripcion, precio, duracion) VALUES (:n, :d, :p, :dur)");
-        $stmt->execute([":n" => $nombre, ":d" => $descripcion, ":p" => $precio, ":dur" => $duracion]);
+    if ($id && $nombre && $precio > 0 && $duracion > 0) {
+        $stmt = $conn->prepare("UPDATE servicios SET nombre=:n, descripcion=:d, precio=:p, duracion=:dur WHERE id=:id");
+        $stmt->execute([":n" => $nombre, ":d" => $descripcion, ":p" => $precio, ":dur" => $duracion, ":id" => $id]);
     }
 }
 header("Location: ../admin/dashboard.php");
