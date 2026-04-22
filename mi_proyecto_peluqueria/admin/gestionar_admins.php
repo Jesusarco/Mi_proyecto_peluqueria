@@ -125,5 +125,3 @@ $admins = $conn->query("SELECT id, nombre, email, rol, fecha_creacion FROM usuar
     cerrarBtns.forEach(btn => btn.addEventListener('click', () => overlay.classList.remove('visible')));
     window.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('visible'); });
 </script>
-
-<?php include "../includes/footer.php"; ?>
