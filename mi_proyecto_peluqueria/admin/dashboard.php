@@ -873,5 +873,3 @@ filtros.forEach(filtro => {
     filtro.addEventListener('keyup', () => filtrarTabla(filtro, idReal));
 });
 </script>
-
-<?php include "../includes/footer.php"; ?>
