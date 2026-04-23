@@ -32,7 +32,6 @@ CREATE TABLE citas (
     fecha DATE NOT NULL,
     hora TIME NOT NULL,
     estado ENUM('reservado', 'cancelado', 'completado') DEFAULT 'reservado',
-    notas TEXT,
     activo BOOLEAN DEFAULT TRUE,
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE RESTRICT,
     FOREIGN KEY (servicio_id) REFERENCES servicios(id) ON DELETE RESTRICT

@@ -11,8 +11,9 @@ include "../includes/header.php";
 // Consultas (sin administradores)
 $productos = $conn->query("SELECT id, nombre, descripcion, precio, stock, imagen, destacado FROM productos ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
 $servicios = $conn->query("SELECT id, nombre, descripcion, precio, duracion FROM servicios WHERE activo = 1 ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
+//Quitar c.notas de aquí, no tiene sentido en la tabla citas de la base de datos
 $citas = $conn->query("
-    SELECT c.id, u.nombre as cliente, s.nombre as servicio, c.fecha, c.hora, c.estado, c.notas 
+    SELECT c.id, u.nombre as cliente, s.nombre as servicio, c.fecha, c.hora, c.estado, c.notas
     FROM citas c
     JOIN usuarios u ON c.usuario_id = u.id
     JOIN servicios s ON c.servicio_id = s.id
@@ -38,8 +39,9 @@ $gastos = $conn->query("SELECT g.id, g.descripcion, g.categoria, g.cantidad, g.f
 $usuarios_clientes = $conn->query("SELECT id, nombre, email, fecha_creacion FROM usuarios WHERE rol = 'cliente' AND activo = 1 ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
 
 // Estadísticas
-$totalPedidos = $conn->query("SELECT COUNT(*) FROM pedidos")->fetchColumn() ?: 0;
+$totalPedidos = $conn->query("SELECT COUNT(*) FROM pedidos WHERE activo = 1")->fetchColumn() ?: 0;
 $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?: 0;
+$totalGastos = $conn->query("SELECT SUM(cantidad) FROM gastos")->fetchColumn() ?: 0;
 ?>
 
 <style>
@@ -83,7 +85,7 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
     .btn-eliminar:hover { background: #c0392b; }
 
     /* Botones de editar y eliminar unificados */
-    .btn-editar, .btn-editar-servicio, .btn-editar-gasto, .btn-eliminar {
+    .btn-editar, .btn-editar-servicio, .btn-editar-gasto, .btn-eliminar, .btn-completado {
         color: white;
         border: none;
         padding: 6px 12px;
@@ -107,6 +109,12 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
     }
     .btn-editar:hover, .btn-editar-servicio:hover, .btn-editar-gasto:hover {
         background: #2980b9;
+    }
+    .btn-completado {
+        background: #22C55E;
+    }
+    .btn-completado:hover{
+        background: #16A34A;
     }
     
     .form-overlay {
@@ -292,6 +300,10 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
                 <small>INGRESOS TOTALES</small>
                 <p><?= number_format($totalIngresos, 2) ?> €</p>
             </div>
+            <div class="salon-card stat-card">
+                <small>GASTOS TOTALES</small>
+                <p><?= number_format($totalGastos, 2) ?> €</p>
+            </div>
         </div>
 
         <!-- PRODUCTOS -->
@@ -370,7 +382,7 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
             </div>
             <table class="salon-table">
                 <thead>
-                    <tr><th>ID</th><th>Cliente</th><th>Servicio</th><th>Fecha</th><th>Hora</th><th>Estado</th><th>Notas</th><th>Acciones</th></tr>
+                    <tr><th>ID</th><th>Cliente</th><th>Servicio</th><th>Fecha</th><th>Hora</th><th>Estado</th><th>Acciones</th></tr>
                 </thead>
                 <tbody>
                     <?php foreach($citas as $c): ?>
@@ -381,8 +393,7 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
                         <td><?= $c['fecha'] ?></td>
                         <td><?= $c['hora'] ?></td>
                         <td><?= $c['estado'] ?></td>
-                        <td><?= htmlspecialchars(substr($c['notas'] ?? '', 0, 50)) ?></td>
-                        <td><a href="../ajax/eliminar_cita.php?id=<?= $c['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Cancelar cita?')">Cancelar</a></td>
+                        <td><a href="../ajax/eliminar_cita.php?id=<?= $c['id'] ?>" class="btn-completado" onclick="return confirm('¿Completar cita?')">Completada</a></td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -411,7 +422,7 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
                         <td><?= htmlspecialchars($ped['cantidades'] ?? '-') ?></td>
                         <td><?= number_format($ped['total'], 2) ?> €</td>
                         <td><?= date('d/m/Y H:i', strtotime($ped['fecha'])) ?></td>
-                        <a href="../ajax/eliminar_pedido.php?id=<?= $ped['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Archivar este pedido? Se ocultará del dashboard pero se conservará en la base de datos.')">Archivar</a>
+                        <td><a href="../ajax/eliminar_pedido.php?id=<?= $ped['id'] ?>" class="btn-completado" onclick="return confirm('Conpletar este pedido? Se ocultará del dashboard pero se conservará en la base de datos.')">Completada</a></td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -425,7 +436,7 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
                 <div class="filtro-wrapper">
                     <input type="text" class="filtro-tabla" data-tabla="gastos" placeholder=" Buscar...">
                 </div>
-                <button id="btnServicio" class="btn-crear">+ Nuevo gasto</button>
+                <button id="btnGasto" class="btn-crear">+ Nuevo gasto</button>
             </div>
             <table class="salon-table">
                 <thead>
@@ -469,7 +480,7 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
                         <td><?= htmlspecialchars($u['nombre']) ?></td>
                         <td><?= htmlspecialchars($u['email']) ?></td>
                         <td><?= date('d/m/Y', strtotime($u['fecha_creacion'])) ?></td>
-                        <td><a href="../ajax/desactivar_usuario.php?id=<?= $u['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Desactivar este cliente?')">Desactivar</a></td>
+                        <td><a href="../ajax/eliminar_usuario.php?id=<?= $u['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Desactivar este cliente?')">Desactivar</a></td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>

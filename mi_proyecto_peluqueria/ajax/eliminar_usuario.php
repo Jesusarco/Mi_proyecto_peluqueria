@@ -10,9 +10,9 @@ if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 'superadmin') {
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if ($id > 0 && $id != $_SESSION['usuario_id']) {
     // Solo eliminar admins normales, no superadmins (por seguridad)
-    $stmt = $conn->prepare("DELETE FROM usuarios WHERE id = :id AND rol = 'admin'");
+    $stmt = $conn->prepare("DELETE FROM usuarios WHERE id = :id AND rol IN ('admin', 'cliente')");
     $stmt->execute([":id" => $id]);
 }
-header("Location: ../admin/gestionar_admins.php");
+header("Location: ../admin/dashboard.php");
 exit();
 ?>

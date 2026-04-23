@@ -23,13 +23,57 @@ $admins = $conn->query("SELECT id, nombre, email, rol, fecha_creacion FROM usuar
     .btn-convertir { background: var(--accent-color); }
     .btn-crear { background: var(--accent-color); color: white; padding: 8px 16px; border-radius: 4px; text-decoration: none; display: inline-block; }
     .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .form-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
-    .form-overlay.visible { display: flex; }
-    .form-container { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 450px; }
-    .form-group { margin-bottom: 15px; }
-    .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
-    .form-group input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; }
-    .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+    .form-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.6);
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+    .form-overlay.visible {
+        display: flex;
+    }
+    .form-container {
+        background: white;
+        padding: 25px 30px;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 550px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        box-sizing: border-box;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+    .form-group input, .form-group textarea, .form-group select {
+        width: 100%;
+        padding: 8px 10px;
+        font-size: 0.9rem;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        box-sizing: border-box;
+    }
+    .form-group textarea {
+        resize: vertical;
+        min-height: 80px;
+    }
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 20px;
+    }
     .salon-btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; }
     .salon-btn-light { background: #ccc; }
     .salon-btn-accent { background: var(--accent-color); color: white; }
@@ -75,10 +119,10 @@ $admins = $conn->query("SELECT id, nombre, email, rol, fecha_creacion FROM usuar
                             <?php if ($admin['id'] != $_SESSION['usuario_id']): ?>
                                 <?php if ($admin['rol'] == 'admin'): ?>
                                     <a href="../ajax/cambiar_rol_admin.php?id=<?= $admin['id'] ?>&accion=ascender" class="btn-convertir" onclick="return confirm('¿Convertir este administrador en Superadmin?')">Ascender</a>
-                                <?php elseif ($admin['rol'] == 'superadmin'): ?>
+                                    <a href="../ajax/eliminar_usuario.php?id=<?= $admin['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Eliminar este administrador?')">Eliminar</a>
+                                    <?php elseif ($admin['rol'] == 'superadmin'): ?>
                                     <a href="../ajax/cambiar_rol_admin.php?id=<?= $admin['id'] ?>&accion=descender" class="btn-convertir" onclick="return confirm('¿Revocar Superadmin a este usuario? Pasará a ser administrador normal.')">Descender</a>
                                 <?php endif; ?>
-                                <a href="../ajax/eliminar_usuario.php?id=<?= $admin['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Eliminar este administrador?')">Eliminar</a>
                             <?php else: ?>
                                 <span style="color:#888;">(Tú)</span>
                             <?php endif; ?>
