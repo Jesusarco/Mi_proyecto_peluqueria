@@ -9,21 +9,22 @@ CREATE TABLE usuarios (
     nombre VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
-    rol ENUM('cliente', 'admin') DEFAULT 'cliente',  -- Cambiado user por cliente
+    rol ENUM('cliente', 'admin', 'superadmin') DEFAULT 'cliente',
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    activo BOOLEAN DEFAULT TRUE                     -- Borrado lógico
+    activo BOOLEAN DEFAULT TRUE
 );
 
--- 2. Tabla servicios
+-- 2. Tabla servicios (con campo activo)
 CREATE TABLE servicios (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     descripcion TEXT,
     precio DECIMAL(10,2) NOT NULL,
-    duracion INT NOT NULL
+    duracion INT NOT NULL,
+    activo BOOLEAN DEFAULT TRUE
 );
 
--- 3. Tabla citas 
+-- 3. Tabla citas (con campo activo)
 CREATE TABLE citas (
     id INT AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT NOT NULL,
@@ -32,6 +33,7 @@ CREATE TABLE citas (
     hora TIME NOT NULL,
     estado ENUM('reservado', 'cancelado', 'completado') DEFAULT 'reservado',
     notas TEXT,
+    activo BOOLEAN DEFAULT TRUE,
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE RESTRICT,
     FOREIGN KEY (servicio_id) REFERENCES servicios(id) ON DELETE RESTRICT
 );
@@ -47,12 +49,13 @@ CREATE TABLE productos (
     destacado BOOLEAN DEFAULT FALSE
 );
 
--- 5. Tabla pedidos 
+-- 5. Tabla pedidos (con campo activo)
 CREATE TABLE pedidos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT NOT NULL,
     total DECIMAL(10,2) NOT NULL,
     fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    activo BOOLEAN DEFAULT TRUE,
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE RESTRICT
 );
 
@@ -71,10 +74,10 @@ CREATE TABLE detalle_pedido (
 CREATE TABLE gastos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     descripcion VARCHAR(255) NOT NULL,
-    categoria VARCHAR(50),  -- Ej: 'Alquiler', 'Material', 'Sueldos', 'Publicidad', 'Otros'
+    categoria VARCHAR(50),
     cantidad DECIMAL(10,2) NOT NULL,
     fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    usuario_id INT NULL,     -- Administrador que registró el gasto
+    usuario_id INT NULL,
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE SET NULL
 );
 
@@ -84,8 +87,10 @@ CREATE INDEX idx_citas_usuario ON citas(usuario_id);
 CREATE INDEX idx_citas_estado ON citas(estado);
 CREATE INDEX idx_pedidos_usuario ON pedidos(usuario_id);
 CREATE INDEX idx_pedidos_fecha ON pedidos(fecha);
+CREATE INDEX idx_pedidos_activo ON pedidos(activo);
 CREATE INDEX idx_productos_nombre ON productos(nombre);
 CREATE INDEX idx_productos_destacado ON productos(destacado);
 CREATE INDEX idx_servicios_nombre ON servicios(nombre);
+CREATE INDEX idx_servicios_activo ON servicios(activo);
 CREATE INDEX idx_gastos_fecha ON gastos(fecha);
 CREATE INDEX idx_gastos_categoria ON gastos(categoria);

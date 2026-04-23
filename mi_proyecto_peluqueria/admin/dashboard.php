@@ -10,13 +10,15 @@ include "../includes/header.php";
 
 // Consultas (sin administradores)
 $productos = $conn->query("SELECT id, nombre, descripcion, precio, stock, imagen, destacado FROM productos ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
-$servicios = $conn->query("SELECT id, nombre, descripcion, precio, duracion FROM servicios ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
-$citas = $conn->query("SELECT c.id, u.nombre as cliente, s.nombre as servicio, c.fecha, c.hora, c.estado, c.notas 
-                        FROM citas c
-                        JOIN usuarios u ON c.usuario_id = u.id
-                        JOIN servicios s ON c.servicio_id = s.id
-                        WHERE u.activo = 1
-                        ORDER BY c.fecha DESC, c.hora DESC")->fetchAll(PDO::FETCH_ASSOC);
+$servicios = $conn->query("SELECT id, nombre, descripcion, precio, duracion FROM servicios WHERE activo = 1 ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
+$citas = $conn->query("
+    SELECT c.id, u.nombre as cliente, s.nombre as servicio, c.fecha, c.hora, c.estado, c.notas 
+    FROM citas c
+    JOIN usuarios u ON c.usuario_id = u.id
+    JOIN servicios s ON c.servicio_id = s.id
+    WHERE u.activo = 1 AND c.activo = 1
+    ORDER BY c.fecha DESC, c.hora DESC
+")->fetchAll(PDO::FETCH_ASSOC);
 $pedidos = $conn->query("
     SELECT p.id, u.nombre as cliente, p.total, p.fecha,
            GROUP_CONCAT(pr.nombre ORDER BY pr.id SEPARATOR ', ') as productos,
@@ -25,7 +27,7 @@ $pedidos = $conn->query("
     JOIN usuarios u ON p.usuario_id = u.id
     LEFT JOIN detalle_pedido dp ON p.id = dp.pedido_id
     LEFT JOIN productos pr ON dp.producto_id = pr.id
-    WHERE u.activo = 1
+    WHERE u.activo = 1 AND p.activo = 1
     GROUP BY p.id
     ORDER BY p.fecha DESC
 ")->fetchAll(PDO::FETCH_ASSOC);
@@ -409,7 +411,7 @@ $totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?
                         <td><?= htmlspecialchars($ped['cantidades'] ?? '-') ?></td>
                         <td><?= number_format($ped['total'], 2) ?> €</td>
                         <td><?= date('d/m/Y H:i', strtotime($ped['fecha'])) ?></td>
-                        <td><a href="../ajax/eliminar_pedido.php?id=<?= $ped['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Eliminar pedido?')">Eliminar</a></td>
+                        <a href="../ajax/eliminar_pedido.php?id=<?= $ped['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Archivar este pedido? Se ocultará del dashboard pero se conservará en la base de datos.')">Archivar</a>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
