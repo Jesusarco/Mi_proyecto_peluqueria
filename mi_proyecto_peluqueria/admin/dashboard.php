@@ -13,7 +13,7 @@ $productos = $conn->query("SELECT id, nombre, descripcion, precio, stock, imagen
 $servicios = $conn->query("SELECT id, nombre, descripcion, precio, duracion FROM servicios WHERE activo = 1 ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
 //Quitar c.notas de aquí, no tiene sentido en la tabla citas de la base de datos
 $citas = $conn->query("
-    SELECT c.id, u.nombre as cliente, s.nombre as servicio, c.fecha, c.hora, c.estado, c.notas
+    SELECT c.id, u.nombre as cliente, s.nombre as servicio, s.precio, c.fecha, c.hora, c.estado, c.notas
     FROM citas c
     JOIN usuarios u ON c.usuario_id = u.id
     JOIN servicios s ON c.servicio_id = s.id
@@ -40,7 +40,15 @@ $usuarios_clientes = $conn->query("SELECT id, nombre, email, fecha_creacion FROM
 
 // Estadísticas
 $totalPedidos = $conn->query("SELECT COUNT(*) FROM pedidos WHERE activo = 1")->fetchColumn() ?: 0;
-$totalIngresos = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?: 0;
+// Suma de ingresos por pedidos (todos, no solo activos) + citas completadas
+$totalPedidosSum = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?: 0;
+$totalCitasCompletadas = $conn->query("
+    SELECT SUM(s.precio) 
+    FROM citas c 
+    JOIN servicios s ON c.servicio_id = s.id 
+    WHERE c.estado = 'completado'
+")->fetchColumn() ?: 0;
+$totalIngresos = $totalPedidosSum + $totalCitasCompletadas;
 $totalGastos = $conn->query("SELECT SUM(cantidad) FROM gastos")->fetchColumn() ?: 0;
 ?>
 
@@ -269,7 +277,7 @@ $totalGastos = $conn->query("SELECT SUM(cantidad) FROM gastos")->fetchColumn() ?
 
 <div class="dashboard-wrapper">
     <aside class="sidebar">
-        <div style="padding: 0 25px 20px;"><h5 style="color:var(--accent-color)">ADMIN</h5></div>
+        <div style="padding: 0 25px 20px;"><h2 style="color:#efefef">👤 <?= htmlspecialchars($_SESSION['nombre'] ?? 'Admin') ?></h2></div>
         <nav>
             <a href="#" class="sidebar-link filter-link" data-tabla="todos">Todos</a>
             <a href="#" class="sidebar-link filter-link" data-tabla="productos">Productos</a>
@@ -282,6 +290,8 @@ $totalGastos = $conn->query("SELECT SUM(cantidad) FROM gastos")->fetchColumn() ?
             <?php if ($_SESSION['rol'] == 'superadmin'): ?>
                 <a href="gestionar_admins.php" class="sidebar-link"> Gestionar Admins</a>
             <?php endif; ?>
+            <a href="gestionar_citas.php" class="sidebar-link"> Gestionar Citas</a>
+            <a href="gestionar_pedidos.php" class="sidebar-link"> Gestionar Pedidos</a>
         </nav>
     </aside>
 
@@ -382,7 +392,7 @@ $totalGastos = $conn->query("SELECT SUM(cantidad) FROM gastos")->fetchColumn() ?
             </div>
             <table class="salon-table">
                 <thead>
-                    <tr><th>ID</th><th>Cliente</th><th>Servicio</th><th>Fecha</th><th>Hora</th><th>Estado</th><th>Acciones</th></tr>
+                    <tr><th>ID</th><th>Cliente</th><th>Servicio</th><th>Precio</th><th>Fecha</th><th>Hora</th><th>Estado</th><th>Acciones</th></tr>
                 </thead>
                 <tbody>
                     <?php foreach($citas as $c): ?>
@@ -390,10 +400,11 @@ $totalGastos = $conn->query("SELECT SUM(cantidad) FROM gastos")->fetchColumn() ?
                         <td><?= $c['id'] ?></td>
                         <td><?= htmlspecialchars($c['cliente']) ?></td>
                         <td><?= htmlspecialchars($c['servicio']) ?></td>
+                        <td><?= number_format($c['precio'], 2) ?> €</td>
                         <td><?= $c['fecha'] ?></td>
                         <td><?= $c['hora'] ?></td>
                         <td><?= $c['estado'] ?></td>
-                        <td><a href="../ajax/eliminar_cita.php?id=<?= $c['id'] ?>" class="btn-completado" onclick="return confirm('¿Completar cita?')">Completada</a></td>
+                        <td><a href="../ajax/archivar_cita.php?id=<?= $c['id'] ?>" class="btn-completado" onclick="return confirm('¿Marcar cita como completada?')">Completar</a></td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -422,7 +433,7 @@ $totalGastos = $conn->query("SELECT SUM(cantidad) FROM gastos")->fetchColumn() ?
                         <td><?= htmlspecialchars($ped['cantidades'] ?? '-') ?></td>
                         <td><?= number_format($ped['total'], 2) ?> €</td>
                         <td><?= date('d/m/Y H:i', strtotime($ped['fecha'])) ?></td>
-                        <td><a href="../ajax/eliminar_pedido.php?id=<?= $ped['id'] ?>" class="btn-completado" onclick="return confirm('Conpletar este pedido? Se ocultará del dashboard pero se conservará en la base de datos.')">Completada</a></td>
+                        <td><a href="../ajax/archivar_pedido.php?id=<?= $ped['id'] ?>" class="btn-completado" onclick="return confirm('Conpletar este pedido? Se ocultará del dashboard pero se conservará en la base de datos.')">Completada</a></td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>

@@ -187,3 +187,19 @@ body {
     min-height: 120px;
     resize: vertical;
 }
+
+/* Uniformar los inputs de Flatpickr con el resto del formulario */
+.flatpickr-input, .form-cita input, .form-cita select, .form-cita textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-family: inherit;
+    font-size: 1rem;
+}
+/* El campo de Flatpickr a veces tiene su propia clase, forzamos el estilo */
+.flatpickr-input {
+    background-color: white !important;
+}

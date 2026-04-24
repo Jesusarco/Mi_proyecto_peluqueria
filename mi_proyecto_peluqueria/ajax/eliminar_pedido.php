@@ -10,9 +10,9 @@ if (!in_array($_SESSION['rol'], ['admin', 'superadmin'])) {
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if ($id > 0) {
     // Borrado lógico: marcar como inactivo
-    $stmt = $conn->prepare("UPDATE pedidos SET activo = 0 WHERE id = :id");
+    $stmt = $conn->prepare("DELETE FROM pedidos WHERE id = :id");
     $stmt->execute([":id" => $id]);
 }
-header("Location: ../admin/dashboard.php");
+header("Location: ../admin/gestionar_pedidos.php");
 exit();
 ?>

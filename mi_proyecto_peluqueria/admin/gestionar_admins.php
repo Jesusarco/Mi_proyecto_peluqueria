@@ -77,11 +77,41 @@ $admins = $conn->query("SELECT id, nombre, email, rol, fecha_creacion FROM usuar
     .salon-btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; }
     .salon-btn-light { background: #ccc; }
     .salon-btn-accent { background: var(--accent-color); color: white; }
+    
+    .filtro-wrapper {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+    }
+
+    .filtro-tabla:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 2px rgba(212,175,55,0.2);
+    }
+
+    .filtro-tabla {
+        width: 260px;
+        max-width: 100%;
+        padding: 8px 15px;
+        border: 1px solid #ddd;
+        border-radius: 30px;
+        font-size: 0.85rem;
+        outline: none;
+        transition: all 0.2s;
+    }
+
+    .admin-header-table {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+    }
 </style>
 
 <div class="dashboard-wrapper">
     <aside class="sidebar">
-        <div style="padding: 0 25px 20px;"><h5 style="color:var(--accent-color)">ADMIN</h5></div>
+        <div style="padding: 0 25px 20px;"><h2 style="color:#efefef">👤 <?= htmlspecialchars($_SESSION['nombre'] ?? 'Admin') ?></h2></div>
         <nav>
             <a href="dashboard.php" class="sidebar-link">Dashboard</a>
             <a href="gestionar_admins.php" class="sidebar-link active">Administradores</a>
@@ -104,9 +134,16 @@ $admins = $conn->query("SELECT id, nombre, email, rol, fecha_creacion FROM usuar
             <?php endif; ?>
 
             <table class="salon-table">
+                <div class ="admin-header-table">
+                    <div class="filtro-wrapper">
+                        <input type="text" class="filtro-tabla" data-tabla="citas" placeholder=" Buscar...">
+                    </div>
+                </div>
+                
                 <thead>
                     <tr><th>ID</th><th>Nombre</th><th>Email</th><th>Rol</th><th>Fecha registro</th><th>Acciones</th></tr>
                 </thead>
+
                 <tbody>
                     <?php foreach($admins as $admin): ?>
                     <tr>
@@ -168,4 +205,20 @@ $admins = $conn->query("SELECT id, nombre, email, rol, fecha_creacion FROM usuar
     btn.addEventListener('click', () => overlay.classList.add('visible'));
     cerrarBtns.forEach(btn => btn.addEventListener('click', () => overlay.classList.remove('visible')));
     window.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('visible'); });
+
+    // Filtrar tablas en tiempo real
+    function filtrarTabla(input, tablaId) {
+        const filtro = input.value.toLowerCase();
+        const tabla = document.getElementById(tablaId);
+        if (!tabla) return;
+        const filas = tabla.querySelectorAll('tbody tr');
+        filas.forEach(fila => {
+            const texto = fila.innerText.toLowerCase();
+            if (texto.includes(filtro)) {
+                fila.style.display = '';
+            } else {
+                fila.style.display = 'none';
+            }
+        });
+    }
 </script>

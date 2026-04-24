@@ -21,7 +21,6 @@ CREATE TABLE servicios (
     descripcion TEXT,
     precio DECIMAL(10,2) NOT NULL,
     duracion INT NOT NULL,
-    activo BOOLEAN DEFAULT TRUE
 );
 
 -- 3. Tabla citas (con campo activo)
@@ -32,7 +31,6 @@ CREATE TABLE citas (
     fecha DATE NOT NULL,
     hora TIME NOT NULL,
     estado ENUM('reservado', 'cancelado', 'completado') DEFAULT 'reservado',
-    activo BOOLEAN DEFAULT TRUE,
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE RESTRICT,
     FOREIGN KEY (servicio_id) REFERENCES servicios(id) ON DELETE RESTRICT
 );
@@ -54,7 +52,7 @@ CREATE TABLE pedidos (
     usuario_id INT NOT NULL,
     total DECIMAL(10,2) NOT NULL,
     fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    activo BOOLEAN DEFAULT TRUE,
+    estado ENUM('pedido', 'entregado') DEFAULT 'pedido',
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE RESTRICT
 );
 
@@ -93,3 +91,7 @@ CREATE INDEX idx_servicios_nombre ON servicios(nombre);
 CREATE INDEX idx_servicios_activo ON servicios(activo);
 CREATE INDEX idx_gastos_fecha ON gastos(fecha);
 CREATE INDEX idx_gastos_categoria ON gastos(categoria);
+
+
+
+Crear un tabla de historial de pedidos y citas para la base de datos.

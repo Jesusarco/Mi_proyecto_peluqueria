@@ -1,7 +1,6 @@
 <?php
 session_start();
 require_once "../config/database.php";
-include "../includes/header.php";
 
 $carrito = $_SESSION['carrito'] ?? [];
 $total = 0;
@@ -13,7 +12,6 @@ $items = [];
 <div class="salon-card" style="margin-top: 20px;">
     <?php if (empty($carrito)): ?>
         <p>Tu carrito está vacío.</p>
-        <a href="tienda.php" class="salon-btn salon-btn-primary">Ver productos</a>
     <?php else: ?>
         <?php foreach ($carrito as $id => $cantidad): ?>
             <?php
@@ -25,12 +23,15 @@ $items = [];
                 $subtotal = $p['precio'] * $cantidad;
                 $total += $subtotal;
             ?>
-                <div class='cart-item' style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee;">
-                    <span>
+                <div class='cart-item' style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee;">
+                    <div>
                         <strong><?= htmlspecialchars($p['nombre']) ?></strong> 
                         (x<?= (int)$cantidad ?>)
-                    </span>
-                    <span><?= number_format($subtotal, 2) ?> €</span>
+                    </div>
+                    <div style="display: flex; gap: 15px; align-items: center;">
+                        <span><?= number_format($subtotal, 2) ?> €</span>
+                        <a href="../ajax/eliminar_del_carrito.php?accion=decrement&id=<?= $id ?>" class="btn-eliminar" style="background:#e74c3c; color:white; padding:4px 8px; border-radius:4px; text-decoration:none; font-size:0.8rem;" onclick="return confirm('¿Quitar una unidad de este producto?')">Eliminar</a>
+                    </div>
                 </div>
             <?php endif; ?>
         <?php endforeach; ?>
@@ -44,5 +45,3 @@ $items = [];
         </form>
     <?php endif; ?>
 </div>
-
-<?php include "../includes/footer.php"; ?>
