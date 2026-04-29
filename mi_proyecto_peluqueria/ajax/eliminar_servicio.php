@@ -15,8 +15,6 @@ if ($id > 0) {
     $citas_asociadas = $stmt->fetchColumn();
     
     if ($citas_asociadas > 0) {
-        // En lugar de eliminar, podrías desactivarlo (si tuvieras campo activo)
-        // Por ahora, redirigimos con error
         header("Location: ../admin/dashboard.php?error=No se puede eliminar el servicio porque tiene citas asociadas");
         exit();
     }

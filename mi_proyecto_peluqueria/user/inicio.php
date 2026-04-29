@@ -3,7 +3,7 @@ session_start();
 require_once "../config/database.php";
 
 // Obtener servicios para el formulario de cita y para mostrar la sección
-$servicios = $conn->query("SELECT id, nombre, descripcion, precio, duracion FROM servicios WHERE activo = 1 ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
+$servicios = $conn->query("SELECT id, nombre, descripcion, precio, duracion FROM servicios ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
 
 // Obtener productos destacados o los primeros 6
 $productos = $conn->query("SELECT id, nombre, descripcion, precio, imagen FROM productos WHERE stock > 0 ORDER BY destacado DESC, id DESC LIMIT 6")->fetchAll(PDO::FETCH_ASSOC);

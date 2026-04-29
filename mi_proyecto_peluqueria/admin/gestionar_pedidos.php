@@ -3,7 +3,7 @@ session_start();
 require_once "../config/database.php";
 
 // Solo superadmin puede gestionar pedidos
-if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 'superadmin') {
+if (!isset($_SESSION['rol'])) {
     header("Location: dashboard.php?error=No tienes permisos para gestionar pedidos");
     exit();
 }
@@ -13,14 +13,14 @@ include "../includes/header.php";
 
 // Consultar pedidos activos con sus productos
 $pedidos = $conn->query("
-    SELECT p.id, u.nombre as cliente, p.total, p.fecha,
+    SELECT p.id, u.nombre as cliente, p.total, p.fecha, estado,
            GROUP_CONCAT(pr.nombre ORDER BY pr.id SEPARATOR ', ') as productos,
            GROUP_CONCAT(dp.cantidad ORDER BY pr.id SEPARATOR ', ') as cantidades
     FROM pedidos p
     JOIN usuarios u ON p.usuario_id = u.id
     LEFT JOIN detalle_pedido dp ON p.id = dp.pedido_id
     LEFT JOIN productos pr ON dp.producto_id = pr.id
-    WHERE u.activo = 1 AND p.activo = 0
+    WHERE estado = 'entregado'
     GROUP BY p.id
     ORDER BY p.fecha DESC
 ")->fetchAll(PDO::FETCH_ASSOC);
@@ -94,7 +94,7 @@ $pedidos = $conn->query("
                 </div>
                 <thead>
                     <tr>
-                        <th>ID Pedido</th><th>Cliente</th><th>Productos</th><th>Cantidad</th><th>Total</th><th>Fecha</th><th>Acciones</th>
+                        <th>ID Pedido</th><th>Cliente</th><th>Productos</th><th>Cantidad</th><th>Total</th><th>Fecha</th><th>Estado</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -106,7 +106,8 @@ $pedidos = $conn->query("
                         <td><?= htmlspecialchars($ped['cantidades'] ?? '-') ?></td>
                         <td><?= number_format($ped['total'], 2) ?> €</td>
                         <td><?= date('d/m/Y H:i', strtotime($ped['fecha'])) ?></td>
-                        <td><a href="../ajax/eliminar_pedido.php?id=<?= $ped['id'] ?>" class="btn-archivar" onclick="return confirm('¿Archivar este pedido? Se ocultará del dashboard.')">Elimianr</a></td>
+                        <td><?= htmlspecialchars($ped['estado']) ?></td>
+
                     </tr>
                     <?php endforeach; ?>
                     <?php if (count($pedidos) == 0): ?>

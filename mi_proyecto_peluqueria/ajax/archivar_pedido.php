@@ -9,7 +9,7 @@ if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 'superadmin') {
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if ($id > 0) {
-    $stmt = $conn->prepare("UPDATE pedidos SET activo = 0 WHERE id = :id");
+    $stmt = $conn->prepare("UPDATE pedidos SET estado = 'entregado' WHERE id = :id");
     $stmt->execute([":id" => $id]);
     header("Location: ../admin/gestionar_pedidos.php?success=Pedido archivado correctamente");
 } else {

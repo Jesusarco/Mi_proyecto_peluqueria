@@ -10,14 +10,14 @@ include "../includes/header.php";
 
 // Consultas (sin administradores)
 $productos = $conn->query("SELECT id, nombre, descripcion, precio, stock, imagen, destacado FROM productos ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
-$servicios = $conn->query("SELECT id, nombre, descripcion, precio, duracion FROM servicios WHERE activo = 1 ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
-//Quitar c.notas de aquí, no tiene sentido en la tabla citas de la base de datos
+$servicios = $conn->query("SELECT id, nombre, descripcion, precio, duracion FROM servicios ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
+
 $citas = $conn->query("
-    SELECT c.id, u.nombre as cliente, s.nombre as servicio, s.precio, c.fecha, c.hora, c.estado, c.notas
+    SELECT c.id, u.nombre as cliente, s.nombre as servicio, s.precio, c.fecha, c.hora, c.estado
     FROM citas c
     JOIN usuarios u ON c.usuario_id = u.id
     JOIN servicios s ON c.servicio_id = s.id
-    WHERE u.activo = 1 AND c.activo = 1
+    WHERE c.estado = 'reservado'
     ORDER BY c.fecha DESC, c.hora DESC
 ")->fetchAll(PDO::FETCH_ASSOC);
 $pedidos = $conn->query("
@@ -28,7 +28,7 @@ $pedidos = $conn->query("
     JOIN usuarios u ON p.usuario_id = u.id
     LEFT JOIN detalle_pedido dp ON p.id = dp.pedido_id
     LEFT JOIN productos pr ON dp.producto_id = pr.id
-    WHERE u.activo = 1 AND p.activo = 1
+    WHERE u.activo = 1 and p.estado = 'pedido'
     GROUP BY p.id
     ORDER BY p.fecha DESC
 ")->fetchAll(PDO::FETCH_ASSOC);
@@ -39,7 +39,8 @@ $gastos = $conn->query("SELECT g.id, g.descripcion, g.categoria, g.cantidad, g.f
 $usuarios_clientes = $conn->query("SELECT id, nombre, email, fecha_creacion FROM usuarios WHERE rol = 'cliente' AND activo = 1 ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
 
 // Estadísticas
-$totalPedidos = $conn->query("SELECT COUNT(*) FROM pedidos WHERE activo = 1")->fetchColumn() ?: 0;
+$totalPedidos = $conn->query("SELECT COUNT(*) FROM pedidos WHERE pedidos.estado  = 'pedido'")->fetchColumn() ?: 0;
+
 // Suma de ingresos por pedidos (todos, no solo activos) + citas completadas
 $totalPedidosSum = $conn->query("SELECT SUM(total) FROM pedidos")->fetchColumn() ?: 0;
 $totalCitasCompletadas = $conn->query("
@@ -93,7 +94,7 @@ $totalGastos = $conn->query("SELECT SUM(cantidad) FROM gastos")->fetchColumn() ?
     .btn-eliminar:hover { background: #c0392b; }
 
     /* Botones de editar y eliminar unificados */
-    .btn-editar, .btn-editar-servicio, .btn-editar-gasto, .btn-eliminar, .btn-completado {
+    .btn-editar, .btn-editar-servicio, .btn-editar-gasto, .btn-editar-cita, .btn-eliminar, .btn-completado {
         color: white;
         border: none;
         padding: 6px 12px;
@@ -112,10 +113,10 @@ $totalGastos = $conn->query("SELECT SUM(cantidad) FROM gastos")->fetchColumn() ?
     .btn-eliminar:hover {
         background: #c0392b;
     }
-    .btn-editar, .btn-editar-servicio, .btn-editar-gasto {
+    .btn-editar, .btn-editar-servicio, .btn-editar-gasto, .btn-editar-cita {
         background: #3498db;
     }
-    .btn-editar:hover, .btn-editar-servicio:hover, .btn-editar-gasto:hover {
+    .btn-editar:hover, .btn-editar-servicio:hover, .btn-editar-gasto:hover, .btn-editar-cita:hover {
         background: #2980b9;
     }
     .btn-completado {
@@ -303,7 +304,7 @@ $totalGastos = $conn->query("SELECT SUM(cantidad) FROM gastos")->fetchColumn() ?
 
         <div class="salon-grid">
             <div class="salon-card stat-card">
-                <small>PEDIDOS TOTALES</small>
+                <small>PEDIDOS PENDIENTES</small>
                 <p><?= $totalPedidos ?></p>
             </div>
             <div class="salon-card stat-card">
@@ -404,7 +405,11 @@ $totalGastos = $conn->query("SELECT SUM(cantidad) FROM gastos")->fetchColumn() ?
                         <td><?= $c['fecha'] ?></td>
                         <td><?= $c['hora'] ?></td>
                         <td><?= $c['estado'] ?></td>
-                        <td><a href="../ajax/archivar_cita.php?id=<?= $c['id'] ?>" class="btn-completado" onclick="return confirm('¿Marcar cita como completada?')">Completar</a></td>
+                        <td>
+                            <button class="btn-editar-cita" data-id="<?= $c['id'] ?>" data-fecha="<?= $c['fecha'] ?>" data-hora="<?= $c['hora'] ?>">Editar</button>
+                            <a href="../ajax/archivar_cita.php?id=<?= $c['id'] ?>" class="btn-completado" onclick="return confirm('¿Marcar cita como completada?')">Completar</a>
+                            <a href="../ajax/eliminar_cita.php?id=<?= $c['id'] ?>" class="btn-eliminar" onclick="return confirm('Cancelar cita, se eliminará para siempre?')">Cancelar</a>
+                        </td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -601,6 +606,36 @@ $totalGastos = $conn->query("SELECT SUM(cantidad) FROM gastos")->fetchColumn() ?
     </div>
 </div>
 
+<!-- OVERLAY EDITAR CITA -->
+<div id="overlayEditarCita" class="form-overlay">
+    <div class="form-container">
+        <h3>Editar cita</h3>
+        <form action="../ajax/actualizar_cita.php" method="POST">
+            <input type="hidden" name="id" id="edit_cita_id">
+            <div class="form-group">
+                <label>Cliente</label>
+                <input type="text" id="edit_cita_cliente" disabled style="background-color: #f5f5f5;">
+            </div>
+            <div class="form-group">
+                <label>Servicio</label>
+                <input type="text" id="edit_cita_servicio" disabled style="background-color: #f5f5f5;">
+            </div>
+            <div class="form-group">
+                <label>Fecha *</label>
+                <input type="date" name="fecha" id="edit_cita_fecha" required>
+            </div>
+            <div class="form-group">
+                <label>Hora *</label>
+                <input type="time" name="hora" id="edit_cita_hora" required>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="salon-btn salon-btn-light cerrar-editar-cita">Cancelar</button>
+                <button type="submit" class="salon-btn salon-btn-accent">Guardar cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- Overlay EDITAR PRODUCTO -->
 <div id="overlayEditarProducto" class="form-overlay">
     <div class="form-container">
@@ -786,114 +821,146 @@ $totalGastos = $conn->query("SELECT SUM(cantidad) FROM gastos")->fetchColumn() ?
         if (todos) todos.classList.add('active');
     }
 
+    // Editar producto
+    const editProdBtns = document.querySelectorAll('.btn-editar');
+    const overlayEditProd = document.getElementById('overlayEditarProducto');
+    if (editProdBtns.length) {
+        editProdBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.getElementById('edit_prod_id').value = btn.dataset.id;
+                document.getElementById('edit_prod_nombre').value = btn.dataset.nombre;
+                document.getElementById('edit_prod_descripcion').value = btn.dataset.descripcion;
+                document.getElementById('edit_prod_precio').value = btn.dataset.precio;
+                document.getElementById('edit_prod_stock').value = btn.dataset.stock;
+                document.getElementById('edit_prod_destacado').checked = (btn.dataset.destacado == '1');
 
-// Editar producto
-const editProdBtns = document.querySelectorAll('.btn-editar');
-const overlayEditProd = document.getElementById('overlayEditarProducto');
-if (editProdBtns.length) {
-    editProdBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.getElementById('edit_prod_id').value = btn.dataset.id;
-            document.getElementById('edit_prod_nombre').value = btn.dataset.nombre;
-            document.getElementById('edit_prod_descripcion').value = btn.dataset.descripcion;
-            document.getElementById('edit_prod_precio').value = btn.dataset.precio;
-            document.getElementById('edit_prod_stock').value = btn.dataset.stock;
-            document.getElementById('edit_prod_destacado').checked = (btn.dataset.destacado == '1');
+                // Mostrar imagen actual
+                const imgActual = document.getElementById('edit_prod_img_actual');
+                const sinImg = document.getElementById('edit_prod_sin_imagen');
+                if (btn.dataset.imagen && btn.dataset.imagen !== '') {
+                    imgActual.src = '../uploads/' + btn.dataset.imagen;
+                    imgActual.style.display = 'block';
+                    sinImg.style.display = 'none';
+                } else {
+                    imgActual.style.display = 'none';
+                    sinImg.style.display = 'block';
+                }
 
-            // Mostrar imagen actual
-            const imgActual = document.getElementById('edit_prod_img_actual');
-            const sinImg = document.getElementById('edit_prod_sin_imagen');
-            if (btn.dataset.imagen && btn.dataset.imagen !== '') {
-                imgActual.src = '../uploads/' + btn.dataset.imagen;
-                imgActual.style.display = 'block';
-                sinImg.style.display = 'none';
-            } else {
-                imgActual.style.display = 'none';
-                sinImg.style.display = 'block';
-            }
-
-            overlayEditProd.classList.add('visible');
+                overlayEditProd.classList.add('visible');
+            });
         });
-    });
-}
-
-// Editar servicio
-const editServBtns = document.querySelectorAll('.btn-editar-servicio');
-const overlayEditServ = document.getElementById('overlayEditarServicio');
-if (editServBtns.length) {
-    editServBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.getElementById('edit_serv_id').value = btn.dataset.id;
-            document.getElementById('edit_serv_nombre').value = btn.dataset.nombre;
-            document.getElementById('edit_serv_descripcion').value = btn.dataset.descripcion;
-            document.getElementById('edit_serv_precio').value = btn.dataset.precio;
-            document.getElementById('edit_serv_duracion').value = btn.dataset.duracion;
-            overlayEditServ.classList.add('visible');
-        });
-    });
-}
-
-// Editar gasto
-const editGastoBtns = document.querySelectorAll('.btn-editar-gasto');
-const overlayEditGasto = document.getElementById('overlayEditarGasto');
-if (editGastoBtns.length) {
-    editGastoBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.getElementById('edit_gasto_id').value = btn.dataset.id;
-            document.getElementById('edit_gasto_descripcion').value = btn.dataset.descripcion;
-            document.getElementById('edit_gasto_categoria').value = btn.dataset.categoria;
-            document.getElementById('edit_gasto_cantidad').value = btn.dataset.cantidad;
-            overlayEditGasto.classList.add('visible');
-        });
-    });
-}
-
-// Cerrar overlays de edición
-const cerrarEditBtns = document.querySelectorAll('.cerrar-editar');
-cerrarEditBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-        overlayEditProd.classList.remove('visible');
-        overlayEditServ.classList.remove('visible');
-        overlayEditGasto.classList.remove('visible');
-    });
-});
-window.addEventListener('click', (e) => {
-    if (e.target === overlayEditProd) overlayEditProd.classList.remove('visible');
-    if (e.target === overlayEditServ) overlayEditServ.classList.remove('visible');
-    if (e.target === overlayEditGasto) overlayEditGasto.classList.remove('visible');
-});
-
-// Filtrar tablas en tiempo real
-function filtrarTabla(input, tablaId) {
-    const filtro = input.value.toLowerCase();
-    const tabla = document.getElementById(tablaId);
-    if (!tabla) return;
-    const filas = tabla.querySelectorAll('tbody tr');
-    filas.forEach(fila => {
-        const texto = fila.innerText.toLowerCase();
-        if (texto.includes(filtro)) {
-            fila.style.display = '';
-        } else {
-            fila.style.display = 'none';
-        }
-    });
-}
-
-// Asignar evento a cada filtro
-const filtros = document.querySelectorAll('.filtro-tabla');
-filtros.forEach(filtro => {
-    const tablaId = filtro.getAttribute('data-tabla');
-    // Mapear data-tabla al ID real de la tabla contenedora
-    let idReal = '';
-    switch (tablaId) {
-        case 'productos': idReal = 'tabla-productos'; break;
-        case 'servicios': idReal = 'tabla-servicios'; break;
-        case 'citas': idReal = 'tabla-citas'; break;
-        case 'pedidos': idReal = 'tabla-pedidos'; break;
-        case 'gastos': idReal = 'tabla-gastos'; break;
-        case 'clientes': idReal = 'tabla-usuarios'; break;
-        default: idReal = 'tabla-' + tablaId;
     }
-    filtro.addEventListener('keyup', () => filtrarTabla(filtro, idReal));
-});
+
+    // Editar servicio
+    const editServBtns = document.querySelectorAll('.btn-editar-servicio');
+    const overlayEditServ = document.getElementById('overlayEditarServicio');
+    if (editServBtns.length) {
+        editServBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.getElementById('edit_serv_id').value = btn.dataset.id;
+                document.getElementById('edit_serv_nombre').value = btn.dataset.nombre;
+                document.getElementById('edit_serv_descripcion').value = btn.dataset.descripcion;
+                document.getElementById('edit_serv_precio').value = btn.dataset.precio;
+                document.getElementById('edit_serv_duracion').value = btn.dataset.duracion;
+                overlayEditServ.classList.add('visible');
+            });
+        });
+    }
+
+    // Editar gasto
+    const editGastoBtns = document.querySelectorAll('.btn-editar-gasto');
+    const overlayEditGasto = document.getElementById('overlayEditarGasto');
+    if (editGastoBtns.length) {
+        editGastoBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.getElementById('edit_gasto_id').value = btn.dataset.id;
+                document.getElementById('edit_gasto_descripcion').value = btn.dataset.descripcion;
+                document.getElementById('edit_gasto_categoria').value = btn.dataset.categoria;
+                document.getElementById('edit_gasto_cantidad').value = btn.dataset.cantidad;
+                overlayEditGasto.classList.add('visible');
+            });
+        });
+    }
+
+    // Editar cita
+    const editCitaBtns = document.querySelectorAll('.btn-editar-cita');
+    const overlayEditCita = document.getElementById('overlayEditarCita');
+
+    if (editCitaBtns.length) {
+        editCitaBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Obtener datos adicionales de la fila actual
+                const fila = btn.closest('tr');
+                const cliente = fila.cells[1].innerText;
+                const servicio = fila.cells[2].innerText;
+                
+                document.getElementById('edit_cita_id').value = btn.dataset.id;
+                document.getElementById('edit_cita_cliente').value = cliente;
+                document.getElementById('edit_cita_servicio').value = servicio;
+                document.getElementById('edit_cita_fecha').value = btn.dataset.fecha;
+                document.getElementById('edit_cita_hora').value = btn.dataset.hora;
+                
+                overlayEditCita.classList.add('visible');
+            });
+        });
+    }
+
+    // Cerrar overlays de edición
+    const cerrarEditBtns = document.querySelectorAll('.cerrar-editar');
+    cerrarEditBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            overlayEditProd.classList.remove('visible');
+            overlayEditServ.classList.remove('visible');
+            overlayEditGasto.classList.remove('visible');
+        });
+    });
+
+    // Cerrar overlay de editar cita
+    const cerrarEditCitaBtns = document.querySelectorAll('.cerrar-editar-cita');
+    cerrarEditCitaBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            overlayEditCita.classList.remove('visible');
+        });
+    });
+
+    window.addEventListener('click', (e) => {
+        if (e.target === overlayEditProd) overlayEditProd.classList.remove('visible');
+        if (e.target === overlayEditServ) overlayEditServ.classList.remove('visible');
+        if (e.target === overlayEditGasto) overlayEditGasto.classList.remove('visible');
+        if (e.target === overlayEditCita) overlayEditCita.classList.remove('visible');
+    });
+
+    // Filtrar tablas en tiempo real
+    function filtrarTabla(input, tablaId) {
+        const filtro = input.value.toLowerCase();
+        const tabla = document.getElementById(tablaId);
+        if (!tabla) return;
+        const filas = tabla.querySelectorAll('tbody tr');
+        filas.forEach(fila => {
+            const texto = fila.innerText.toLowerCase();
+            if (texto.includes(filtro)) {
+                fila.style.display = '';
+            } else {
+                fila.style.display = 'none';
+            }
+        });
+    }
+
+    // Asignar evento a cada filtro
+    const filtros = document.querySelectorAll('.filtro-tabla');
+    filtros.forEach(filtro => {
+        const tablaId = filtro.getAttribute('data-tabla');
+        // Mapear data-tabla al ID real de la tabla contenedora
+        let idReal = '';
+        switch (tablaId) {
+            case 'productos': idReal = 'tabla-productos'; break;
+            case 'servicios': idReal = 'tabla-servicios'; break;
+            case 'citas': idReal = 'tabla-citas'; break;
+            case 'pedidos': idReal = 'tabla-pedidos'; break;
+            case 'gastos': idReal = 'tabla-gastos'; break;
+            case 'clientes': idReal = 'tabla-usuarios'; break;
+            default: idReal = 'tabla-' + tablaId;
+        }
+        filtro.addEventListener('keyup', () => filtrarTabla(filtro, idReal));
+    });
 </script>

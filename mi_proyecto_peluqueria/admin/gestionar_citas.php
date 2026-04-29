@@ -3,7 +3,7 @@ session_start();
 require_once "../config/database.php";
 
 // Solo superadmin puede gestionar citas
-if (!isset($_SESSION['rol']) || $_SESSION['rol'] != 'superadmin') {
+if (!isset($_SESSION['rol'])) {
     header("Location: dashboard.php?error=No tienes permisos para gestionar citas");
     exit();
 }
@@ -13,11 +13,11 @@ include "../includes/header.php";
 
 // Consultar citas activas (solo las que no están archivadas)
 $citas = $conn->query("
-    SELECT c.id, u.nombre as cliente, s.nombre as servicio, s.precio, c.fecha, c.hora, c.estado, c.notas
+    SELECT c.id, u.nombre as cliente, s.nombre as servicio, s.precio, c.fecha, c.hora, c.estado
     FROM citas c
     JOIN usuarios u ON c.usuario_id = u.id
     JOIN servicios s ON c.servicio_id = s.id
-    WHERE u.activo = 1 AND c.estado = 'completado'
+    WHERE c.estado = 'completado'
     ORDER BY c.fecha DESC, c.hora DESC
 ")->fetchAll(PDO::FETCH_ASSOC);
 ?>
@@ -108,7 +108,7 @@ $citas = $conn->query("
                 </div>
                 <thead>
                     <tr>
-                        <th>ID</th><th>Cliente</th><th>Servicio</th><th>Precio</th><th>Fecha</th><th>Hora</th><th>Estado</th><th>Acciones</th>
+                        <th>ID</th><th>Cliente</th><th>Servicio</th><th>Precio</th><th>Fecha</th><th>Hora</th><th>Estado</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -121,7 +121,6 @@ $citas = $conn->query("
                         <td><?= $c['fecha'] ?></td>
                         <td><?= $c['hora'] ?></td>
                         <td><?= $c['estado'] ?></td>
-                        <td><a href="../ajax/eliminar_cita.php?id=<?= $c['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Eliminar cita?')">Eliminar</a></td>
                     </tr>
                     <?php endforeach; ?>
                     <?php if (count($citas) == 0): ?>

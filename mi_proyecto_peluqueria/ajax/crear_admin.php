@@ -39,7 +39,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
     
     if ($error) {
-        header("Location: ../admin/gestionar_admins.php?error=" . urlencode($error));
+        header("Location: ../admin/gestionar_admins.php");
         exit();
     }
 }
