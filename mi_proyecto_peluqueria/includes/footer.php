@@ -28,7 +28,7 @@
                     Pelu<em style="color:#fff; font-style:italic;">quer&iacute;a</em>
                 </div>
                 <p style="
-                    color: #666660;
+                    color: #f5f0e8;
                     font-size: 0.85rem;
                     font-weight: 300;
                     line-height: 1.8;
@@ -63,7 +63,7 @@
                     ?>
                     <li style="margin-bottom: 12px;">
                         <a href="<?= $href ?>" style="
-                            color: #666660;
+                            color: #f5f0e8;
                             text-decoration: none;
                             font-size: 0.82rem;
                             font-weight: 300;
@@ -74,7 +74,7 @@
                             gap: 8px;
                         "
                         onmouseover="this.style.color='#C9A84C'"
-                        onmouseout="this.style.color='#666660'"
+                        onmouseout="this.style.color='#f5f0e8'"
                         >
                             <span style="color: rgba(201,168,76,0.4); font-size: 0.6rem;">▸</span>
                             <?= $label ?>
@@ -95,17 +95,17 @@
                     color: #C9A84C;
                     margin: 0 0 20px 0;
                 ">Horario</h5>
-                <div style="color: #666660; font-size: 0.82rem; font-weight: 300; line-height: 2;">
+                <div style="color: #f5f0e8; font-size: 0.82rem; font-weight: 300; line-height: 2;">
                     <div style="display:flex; justify-content:space-between; gap:20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px; margin-bottom: 8px;">
                         <span>Lun – Vie</span>
-                        <span style="color: #999990;">10:00 – 20:00</span>
+                        <span style="color: #f5f0e8;">09:00 – 13:30 | 16:00 – 20:30</span>
                     </div>
                     <div style="display:flex; justify-content:space-between; gap:20px;">
                         <span>Sábados</span>
-                        <span style="color: #999990;">09:00 – 14:00</span>
+                        <span style="color: #f5f0e8;">09:00 – 13:30 | 16:00 – 20:30</span>
                     </div>
-                    <div style="margin-top: 16px; font-size: 0.75rem; color: #555550; font-style: italic; letter-spacing: 0.05em;">
-                        Domingos cerrado
+                    <div style="margin-top: 16px; font-size: 0.75rem; color: #f5f0e8; font-style: italic; letter-spacing: 0.05em;">
+                        Domingos cerramos
                     </div>
                 </div>
             </div>
@@ -122,15 +122,15 @@
                     margin: 0 0 20px 0;
                 ">Contacto</h5>
                 <div style="font-size: 0.82rem; font-weight: 300; line-height: 2.2;">
-                    <div style="color: #666660; display: flex; align-items: center; gap: 10px;">
+                    <div style="color: #f5f0e8; display: flex; align-items: center; gap: 10px;">
                         <span style="color: #C9A84C; font-size: 0.9rem;">✆</span>
-                        <span>123 456 789</span>
+                        <span>645 87 87 21</span>
                     </div>
-                    <div style="color: #666660; display: flex; align-items: center; gap: 10px;">
+                    <div style="color: #f5f0e8; display: flex; align-items: center; gap: 10px;">
                         <span style="color: #C9A84C; font-size: 0.9rem;">✉</span>
                         <span>info@peluqueria.es</span>
                     </div>
-                    <div style="color: #666660; display: flex; align-items: flex-start; gap: 10px; margin-top: 4px;">
+                    <div style="color: #f5f0e8; display: flex; align-items: flex-start; gap: 10px; margin-top: 4px;">
                         <span style="color: #C9A84C; font-size: 0.9rem;">⌖</span>
                         <span style="line-height: 1.5;">Calle Mayor, 12<br>28001 Madrid</span>
                     </div>
@@ -142,7 +142,7 @@
         <!-- Línea divisoria -->
         <div style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 28px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
             <p style="
-                color: #444440;
+                color: #f5f0e8;
                 font-size: 0.72rem;
                 font-weight: 300;
                 letter-spacing: 0.08em;
@@ -151,7 +151,7 @@
                 &copy; <?= date('Y') ?> Peluquería Profesional &nbsp;&middot;&nbsp; Elegancia y Estilo &nbsp;&middot;&nbsp; Todos los derechos reservados
             </p>
             <p style="
-                color: #333330;
+                color: #f5f0e8;
                 font-size: 0.68rem;
                 font-weight: 300;
                 letter-spacing: 0.05em;
