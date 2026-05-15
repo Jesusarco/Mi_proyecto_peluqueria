@@ -10,7 +10,7 @@ include "../includes/header.php";
 
 // Consultas (sin administradores)
 $productos = $conn->query("SELECT id, nombre, descripcion, precio, stock, imagen, destacado FROM productos ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
-$servicios = $conn->query("SELECT id, nombre, descripcion, precio, imagen, duracion FROM servicios ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
+$servicios = $conn->query("SELECT id, nombre, descripcion, precio, duracion, imagen FROM servicios ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
 
 $citas = $conn->query("
     SELECT c.id, u.nombre as cliente, s.nombre as servicio, s.precio, c.fecha, c.hora, c.estado
@@ -373,7 +373,7 @@ $totalGastos = $conn->query("SELECT SUM(cantidad) FROM gastos")->fetchColumn() ?
                         <td><?= $s['duracion'] ?></td>
                         <td><?= $s['imagen'] ? '<img src="../uploads/'.$s['imagen'].'" class="imagen-tabla">' : '-' ?></td>
                         <td>
-                            <button class="btn-editar-servicio" data-id="<?= $s['id'] ?>" data-nombre="<?= htmlspecialchars($s['nombre']) ?>" data-descripcion="<?= htmlspecialchars($s['descripcion'] ?? '') ?>" data-precio="<?= $s['precio'] ?>" data-duracion="<?= $s['duracion'] ?> data-imagen="<?= htmlspecialchars($s['imagen'] ?? '') ?>">Editar</button>
+                            <button class="btn-editar-servicio" data-id="<?= $s['id'] ?>" data-nombre="<?= htmlspecialchars($s['nombre']) ?>" data-descripcion="<?= htmlspecialchars($s['descripcion'] ?? '') ?>" data-precio="<?= $s['precio'] ?>" data-duracion="<?= $s['duracion'] ?>" data-imagen="<?= htmlspecialchars($s['imagen'] ?? '') ?>">Editar</button>
                             <a href="../ajax/eliminar.php?action=servicio&id=<?= $s['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Eliminar servicio?')">Eliminar</a>
                         </td>
                     </tr>
