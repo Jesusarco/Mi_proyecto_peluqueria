@@ -64,7 +64,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             background: var(--cream);
             min-height: 100vh;
             display: flex;
-            align-items: flex-start;   /* ← antes era center */
+            align-items: flex-start;  
             justify-content: center;
             font-family: 'DM Sans', sans-serif;
             position: relative;
@@ -100,7 +100,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             padding: 24px;
             position: relative;
             z-index: 1;
-            margin-top: 2rem;          /* ← añade esta línea (o 30px, 40px...) */
+            margin-top: 2rem;          
             animation: fadeUp 0.55s cubic-bezier(0.22,1,0.36,1) both;
         }
 
@@ -144,7 +144,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             box-shadow: 0 4px 24px rgba(28,43,30,0.06), 0 1px 3px rgba(28,43,30,0.04);
             position: relative;
             overflow: hidden;
-            margin-bottom: 20px;      /* ← NUEVA LÍNEA (opcional) */
+            margin-bottom: 20px;      
         }
 
         /* Gold top accent */
