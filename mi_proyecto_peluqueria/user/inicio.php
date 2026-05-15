@@ -6,7 +6,7 @@
     $usuario_logueado = isset($_SESSION['usuario_id']);
 
     // Obtener servicios para el formulario de cita y para mostrar la sección
-    $servicios = $conn->query("SELECT id, nombre, descripcion, precio, duracion FROM servicios ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
+    $servicios = $conn->query("SELECT id, nombre, descripcion, precio, duracion, imagen FROM servicios ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
 
     // Obtener productos destacados o los primeros 6
     $productos = $conn->query("SELECT id, nombre, descripcion, precio, imagen FROM productos WHERE stock > 0 ORDER BY destacado DESC, id DESC LIMIT 6")->fetchAll(PDO::FETCH_ASSOC);
@@ -127,7 +127,8 @@
             border-radius: 6px;
             box-sizing: border-box;
         }
-        .form-cita button {
+
+        button {
             background: var(--accent-color);
             color: white;
             padding: 10px 20px;
@@ -191,7 +192,7 @@
             pointer-events: auto;
         }
         #btnScrollTop:hover {
-            background: rgba(0,0,0,0.7);
+            background: rgba(175, 134, 0, 0.7);
             transform: scale(1.1);
         }
 
@@ -312,8 +313,15 @@
         <div class="salon-grid" id="listaServicios">
             <?php foreach ($servicios as $s): ?>
                 <div class="servicio-card"
-                     data-nombre="<?= htmlspecialchars($s['nombre']) ?>"
-                     data-descripcion="<?= htmlspecialchars($s['descripcion'] ?? '') ?>">
+                    data-nombre="<?= htmlspecialchars($s['nombre']) ?>"
+                    data-descripcion="<?= htmlspecialchars($s['descripcion'] ?? '') ?>">
+                    
+                    <?php if ($s['imagen']): ?>
+                        <img src="../uploads/<?= htmlspecialchars($s['imagen']) ?>" alt="<?= htmlspecialchars($s['nombre']) ?>" style="width:100%; height:150px; object-fit:cover; border-radius:8px;">
+                    <?php else: ?>
+                        <div style="height:150px; background:#f0f0f0; display:flex; align-items:center; justify-content:center;">Sin imagen</div>
+                    <?php endif; ?>
+                    
                     <h3><?= htmlspecialchars($s['nombre']) ?></h3>
                     <p><?= htmlspecialchars(substr($s['descripcion'] ?? '', 0, 100)) ?></p>
                     <p class="precio"><?= number_format($s['precio'], 2) ?> €</p>
@@ -405,16 +413,16 @@
         <br><br>
         <h2>Atención al cliente</h2>
         <div class="contacto-info">
-            <div class="contacto-item"><h3>📞 Teléfono</h3><p>123 456 789</p></div>
-            <div class="contacto-item"><h3>✉️ Email</h3><p>info@peluqueria.com</p></div>
-            <div class="contacto-item"><h3>📍 Dirección</h3><p>Calle Principal, 123</p></div>
+            <div class="contacto-item"><h3> Teléfono</h3><p>645 87 87 21</p></div>
+            <div class="contacto-item"><h3> Email</h3><p>info@peluqueria.com</p></div>
+            <div class="contacto-item"><h3> Dirección</h3><p>Calle Principal, 123</p></div>
         </div>
         <form id="formContacto" style="margin-top: 30px;">
             <h3>Envíanos un mensaje</h3>
             <input type="text" placeholder="Tu nombre" required style="width:100%; padding:10px; margin-bottom:10px;">
             <input type="email" placeholder="Tu email" required style="width:100%; padding:10px; margin-bottom:10px;">
             <textarea placeholder="Tu mensaje" rows="4" style="width:100%; padding:10px; margin-bottom:10px;"></textarea>
-            <button type="submit" style="background:var(--accent-color); color:white; border:none; padding:10px 20px; border-radius:30px;">Enviar mensaje</button>
+            <button type="submit">Enviar mensaje</button>
         </form>
         <div id="mensajeContacto" style="margin-top:15px; text-align:center;"></div>
         <br><br>
