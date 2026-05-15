@@ -342,7 +342,7 @@ $totalGastos = $conn->query("SELECT SUM(cantidad) FROM gastos")->fetchColumn() ?
                         <td><?= $p['imagen'] ? '<img src="../uploads/'.$p['imagen'].'" class="imagen-tabla">' : '-' ?></td>
                         <td>
                             <button class="btn-editar" data-id="<?= $p['id'] ?>" data-nombre="<?= htmlspecialchars($p['nombre']) ?>" data-descripcion="<?= htmlspecialchars($p['descripcion'] ?? '') ?>" data-precio="<?= $p['precio'] ?>" data-stock="<?= $p['stock'] ?>" data-destacado="<?= $p['destacado'] ?>" data-imagen="<?= htmlspecialchars($p['imagen'] ?? '') ?>">Editar</button>
-                            <a href="../ajax/eliminar_producto.php?id=<?= $p['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Eliminar producto?')">Eliminar</a>
+                            <a href="../ajax/eliminar.php?action=producto&id=<?= $p['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Eliminar producto?')">Eliminar</a>
                         </td>
                     </tr>
                     <?php endforeach; ?>
@@ -373,7 +373,7 @@ $totalGastos = $conn->query("SELECT SUM(cantidad) FROM gastos")->fetchColumn() ?
                         <td><?= $s['duracion'] ?></td>
                         <td>
                             <button class="btn-editar-servicio" data-id="<?= $s['id'] ?>" data-nombre="<?= htmlspecialchars($s['nombre']) ?>" data-descripcion="<?= htmlspecialchars($s['descripcion'] ?? '') ?>" data-precio="<?= $s['precio'] ?>" data-duracion="<?= $s['duracion'] ?>">Editar</button>
-                            <a href="../ajax/eliminar_servicio.php?id=<?= $s['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Eliminar servicio?')">Eliminar</a>
+                            <a href="../ajax/eliminar.php?action=servicio&id=<?= $s['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Eliminar servicio?')">Eliminar</a>
                         </td>
                     </tr>
                     <?php endforeach; ?>
@@ -407,8 +407,8 @@ $totalGastos = $conn->query("SELECT SUM(cantidad) FROM gastos")->fetchColumn() ?
                         <td><?= $c['estado'] ?></td>
                         <td>
                             <button class="btn-editar-cita" data-id="<?= $c['id'] ?>" data-fecha="<?= $c['fecha'] ?>" data-hora="<?= $c['hora'] ?>">Editar</button>
-                            <a href="../ajax/archivar_cita.php?id=<?= $c['id'] ?>" class="btn-completado" onclick="return confirm('¿Marcar cita como completada?')">Completar</a>
-                            <a href="../ajax/eliminar_cita.php?id=<?= $c['id'] ?>" class="btn-eliminar" onclick="return confirm('Cancelar cita, se eliminará para siempre?')">Cancelar</a>
+                            <a href="../ajax/archivar.php?action=cita&id=<?= $c['id'] ?>" class="btn-completado" onclick="return confirm('¿Marcar cita como completada?')">Completar</a>
+                            <a href="../ajax/eliminar.php?action=cita&id=<?= $c['id'] ?>" class="btn-eliminar" onclick="return confirm('Cancelar cita, se eliminará para siempre?')">Cancelar</a>
                         </td>
                     </tr>
                     <?php endforeach; ?>
@@ -438,7 +438,9 @@ $totalGastos = $conn->query("SELECT SUM(cantidad) FROM gastos")->fetchColumn() ?
                         <td><?= htmlspecialchars($ped['cantidades'] ?? '-') ?></td>
                         <td><?= number_format($ped['total'], 2) ?> €</td>
                         <td><?= date('d/m/Y H:i', strtotime($ped['fecha'])) ?></td>
-                        <td><a href="../ajax/archivar_pedido.php?id=<?= $ped['id'] ?>" class="btn-completado" onclick="return confirm('Conpletar este pedido? Se ocultará del dashboard pero se conservará en la base de datos.')">Completada</a></td>
+                        <td>
+                            <a href="../ajax/archivar.php?action=pedido&id=<?= $ped['id'] ?>" class="btn-completado" onclick="return confirm('Completar este pedido? Se ocultará del dashboard pero se conservará en la base de datos.')">Completada</a>
+                        </td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -468,7 +470,7 @@ $totalGastos = $conn->query("SELECT SUM(cantidad) FROM gastos")->fetchColumn() ?
                         <td><?= date('d/m/Y', strtotime($g['fecha'])) ?></td>
                         <td>
                             <button class="btn-editar-gasto" data-id="<?= $g['id'] ?>" data-descripcion="<?= htmlspecialchars($g['descripcion']) ?>" data-categoria="<?= htmlspecialchars($g['categoria'] ?? '') ?>" data-cantidad="<?= $g['cantidad'] ?>">Editar</button>
-                            <a href="../ajax/eliminar_gasto.php?id=<?= $g['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Eliminar gasto?')">Eliminar</a>
+                            <a href="../ajax/eliminar.php?action=gasto&id=<?= $g['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Eliminar gasto?')">Eliminar</a>
                         </td>
                     </tr>
                     <?php endforeach; ?>
@@ -496,7 +498,9 @@ $totalGastos = $conn->query("SELECT SUM(cantidad) FROM gastos")->fetchColumn() ?
                         <td><?= htmlspecialchars($u['nombre']) ?></td>
                         <td><?= htmlspecialchars($u['email']) ?></td>
                         <td><?= date('d/m/Y', strtotime($u['fecha_creacion'])) ?></td>
-                        <td><a href="../ajax/eliminar_usuario.php?id=<?= $u['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Desactivar este cliente?')">Desactivar</a></td>
+                        <td>
+                            <a href="../ajax/eliminar.php?action=usuario&id=<?= $u['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Desactivar este cliente?')">Desactivar</a>
+                        </td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -610,7 +614,8 @@ $totalGastos = $conn->query("SELECT SUM(cantidad) FROM gastos")->fetchColumn() ?
 <div id="overlayEditarCita" class="form-overlay">
     <div class="form-container">
         <h3>Editar cita</h3>
-        <form action="../ajax/actualizar_cita.php" method="POST">
+        <form action="../ajax/actualizar.php" method="POST">
+            <input type="hidden" name="action" value="cita">
             <input type="hidden" name="id" id="edit_cita_id">
             <div class="form-group">
                 <label>Cliente</label>
@@ -640,7 +645,8 @@ $totalGastos = $conn->query("SELECT SUM(cantidad) FROM gastos")->fetchColumn() ?
 <div id="overlayEditarProducto" class="form-overlay">
     <div class="form-container">
         <h3>Editar producto</h3>
-        <form action="../ajax/actualizar_producto.php" method="POST" enctype="multipart/form-data">
+        <form action="../ajax/actualizar.php" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="action" value="producto">
             <input type="hidden" name="id" id="edit_prod_id">
             <div class="form-group">
                 <label>Nombre *</label>
@@ -683,7 +689,8 @@ $totalGastos = $conn->query("SELECT SUM(cantidad) FROM gastos")->fetchColumn() ?
 <div id="overlayEditarServicio" class="form-overlay">
     <div class="form-container">
         <h3>Editar servicio</h3>
-        <form action="../ajax/actualizar_servicio.php" method="POST">
+        <form action="../ajax/actualizar.php" method="POST">
+            <input type="hidden" name="action" value="servicio">
             <input type="hidden" name="id" id="edit_serv_id">
             <div class="form-group">
                 <label>Nombre *</label>
@@ -712,7 +719,8 @@ $totalGastos = $conn->query("SELECT SUM(cantidad) FROM gastos")->fetchColumn() ?
 <div id="overlayEditarGasto" class="form-overlay">
     <div class="form-container">
         <h3>Editar gasto</h3>
-        <form action="../ajax/actualizar_gasto.php" method="POST">
+        <form action="../ajax/actualizar.php" method="POST">
+            <input type="hidden" name="action" value="gasto">
             <input type="hidden" name="id" id="edit_gasto_id">
             <div class="form-group">
                 <label>Descripción *</label>

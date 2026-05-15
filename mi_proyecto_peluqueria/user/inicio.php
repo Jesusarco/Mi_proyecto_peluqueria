@@ -2,6 +2,9 @@
 session_start();
 require_once "../config/database.php";
 
+// Comprobar si el usuario está logueado
+$usuario_logueado = isset($_SESSION['usuario_id']);
+
 // Obtener servicios para el formulario de cita y para mostrar la sección
 $servicios = $conn->query("SELECT id, nombre, descripcion, precio, duracion FROM servicios ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
 
@@ -56,9 +59,17 @@ $productos = $conn->query("SELECT id, nombre, descripcion, precio, imagen FROM p
             text-align: center;
             transition: transform 0.2s;
         }
-        .producto-card:hover, .servicio-card:hover { transform: translateY(-5px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
-        .producto-card img { max-width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; }
-        .precio { font-size: 1.3rem; color: var(--accent-color); font-weight: bold; }
+        .producto-card:hover, .servicio-card:hover { 
+            transform: translateY(-5px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); 
+        
+        }
+        .producto-card img { 
+            max-width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; 
+        }
+        
+        .precio { 
+            font-size: 1.3rem; color: var(--accent-color); font-weight: bold; 
+        }
         .btn-carrito {
             background: var(--accent-color);
             color: white;
@@ -67,6 +78,15 @@ $productos = $conn->query("SELECT id, nombre, descripcion, precio, imagen FROM p
             border-radius: 4px;
             cursor: pointer;
             margin-top: 10px;
+        }
+        .btn-carrito-deshabilitado {
+            background: #ccc;
+            color: #666;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            margin-top: 10px;
+            cursor: not-allowed;
         }
 
         /* Filtros de búsqueda */
@@ -106,6 +126,18 @@ $productos = $conn->query("SELECT id, nombre, descripcion, precio, imagen FROM p
             border-radius: 6px;
             cursor: pointer;
             width: 100%;
+        }
+        .login-requerido {
+            text-align: center;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .login-requerido a {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: bold;
         }
 
         /* Contacto */
@@ -167,21 +199,26 @@ $productos = $conn->query("SELECT id, nombre, descripcion, precio, imagen FROM p
 
     <!-- Sección Inicio (visible siempre) -->
     <section id="inicio" class="section">
+        <br><br>
         <div class="hero">
             <h1>Bienvenido a nuestra peluquería</h1>
             <p>Descubre los mejores servicios de estilismo y cuidado personal. Profesionales a tu servicio.</p>
         </div>
+        <br><br>
     </section>
 
     <!-- Sección Sobre nosotros (visible siempre) -->
     <section id="sobre-nosotros" class="section">
+        <br><br>
         <h2>Sobre nosotros</h2>
         <p>Somos un equipo de profesionales apasionados por la belleza y el cuidado del cabello. Con más de 10 años de experiencia, ofrecemos servicios de alta calidad utilizando productos de primeras marcas. Tu satisfacción es nuestra mayor recompensa.</p>
         <p>Nuestro salón está diseñado para que te sientas cómodo y relajado mientras nuestros estilistas trabajan para realzar tu imagen.</p>
+        <br><br>
     </section>
 
     <!-- Sección Nuestros productos (oculta inicialmente) con filtro -->
     <section id="productos" class="section seccion-oculta">
+        <br><br>
         <h2>Nuestros productos</h2>
         <div class="filtro-busqueda">
             <input type="text" id="filtroProductos" placeholder=" Buscar producto...">
@@ -196,20 +233,26 @@ $productos = $conn->query("SELECT id, nombre, descripcion, precio, imagen FROM p
                     <?php else: ?>
                         <div style="height:150px; background:#f0f0f0; display:flex; align-items:center; justify-content:center;">Sin imagen</div>
                     <?php endif; ?>
-                    <h3><?= htmlspecialchars($p['nombre']) ?></h3>
-                    <p><?= htmlspecialchars(substr($p['descripcion'] ?? '', 0, 100)) ?>...</p>
-                    <p class="precio"><?= number_format($p['precio'], 2) ?> €</p>
-                    <button class="btn-carrito" onclick="addToCart(<?= $p['id'] ?>)">Añadir al carrito</button>
+                        <h3><?= htmlspecialchars($p['nombre']) ?></h3>
+                        <p><?= htmlspecialchars(substr($p['descripcion'] ?? '', 0, 100)) ?>...</p>
+                        <p class="precio"><?= number_format($p['precio'], 2) ?> €</p>
+                    <?php if ($usuario_logueado): ?>
+                        <button class="btn-carrito" onclick="addToCart(<?= $p['id'] ?>)">Añadir al carrito</button>
+                    <?php else: ?>
+                        <button class="btn-carrito-deshabilitado" onclick="mostrarMensajeLogin()">Inicia sesión para comprar</button>
+                    <?php endif; ?>
                 </div>
             <?php endforeach; ?>
         </div>
         <?php if (count($productos) == 0): ?>
             <p>Próximamente nuevos productos.</p>
         <?php endif; ?>
+        <br><br>
     </section>
 
     <!-- Sección Nuestros servicios (oculta inicialmente) con filtro -->
     <section id="servicios" class="section seccion-oculta">
+        <br><br>
         <h2>Nuestros servicios</h2>
         <div class="filtro-busqueda">
             <input type="text" id="filtroServicios" placeholder=" Buscar servicio...">
@@ -229,44 +272,54 @@ $productos = $conn->query("SELECT id, nombre, descripcion, precio, imagen FROM p
         <?php if (count($servicios) == 0): ?>
             <p>Próximamente nuevos servicios.</p>
         <?php endif; ?>
+        <br><br>
     </section>
 
     <!-- Sección Pedir cita (oculta inicialmente) -->
     <section id="cita" class="section seccion-oculta">
+        <br><br>
         <h2>Pedir cita</h2>
         <p>Selecciona el servicio y la fecha que prefieras. Te confirmaremos la reserva lo antes posible.</p>
-        <div style="max-width: 600px; margin: 0 auto;">
-            <form id="formReservaInicio" class="form-cita">
-                <div class="form-group">
-                    <label>Servicio</label>
-                    <select name="servicio_id" required>
-                        <option value="">Selecciona un servicio</option>
-                        <?php foreach ($servicios as $s): ?>
-                            <option value="<?= $s['id'] ?>"><?= htmlspecialchars($s['nombre']) ?> - <?= number_format($s['precio'], 2) ?>€ (<?= $s['duracion'] ?> min)</option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Fecha</label>
-                    <input type="text" id="fecha_cita" name="fecha" placeholder="Selecciona una fecha" required>
-                </div>
-                <div class="form-group">
-                    <label>Hora</label>
-                    <input type="text" id="hora_cita" name="hora" placeholder="Selecciona hora" required>
-                </div>
-                <button type="submit">Reservar cita</button>
-            </form>
-            <div id="mensajeCita" style="margin-top:15px; text-align:center;"></div>
-        </div>
+        <?php if ($usuario_logueado): ?>
+            <div style="max-width: 600px; margin: 0 auto;">
+                <form id="formReservaInicio" class="form-cita">
+                    <div class="form-group">
+                        <label>Servicio</label>
+                        <select name="servicio_id" required>
+                            <option value="">Selecciona un servicio</option>
+                            <?php foreach ($servicios as $s): ?>
+                                <option value="<?= $s['id'] ?>"><?= htmlspecialchars($s['nombre']) ?> - <?= number_format($s['precio'], 2) ?>€ (<?= $s['duracion'] ?> min)</option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha</label>
+                        <input type="text" id="fecha_cita" name="fecha" placeholder="Selecciona una fecha" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Hora</label>
+                        <input type="text" id="hora_cita" name="hora" placeholder="Selecciona hora" required>
+                    </div>
+                    <button type="submit">Reservar cita</button>
+                </form>
+                <div id="mensajeCita" style="margin-top:15px; text-align:center;"></div>
+            </div>
+        <?php else: ?>
+            <div class="login-requerido">
+                <p>Para reservar una cita, primero debes <a href="../auth/login.php">iniciar sesión</a> o <a href="../auth/register_form.php">registrarte</a>.</p>
+            </div>
+        <?php endif; ?>
+        <br><br>
     </section>
 
     <!-- Sección Atención al cliente (visible siempre) -->
     <section id="atencion-cliente" class="section">
+        <br><br>
         <h2>Atención al cliente</h2>
         <div class="contacto-info">
-            <div class="contacto-item"><h3> Teléfono</h3><p>123 456 789</p></div>
-            <div class="contacto-item"><h3> Email</h3><p>info@peluqueria.com</p></div>
-            <div class="contacto-item"><h3> Dirección</h3><p>Calle Principal, 123</p></div>
+            <div class="contacto-item"><h3>📞 Teléfono</h3><p>123 456 789</p></div>
+            <div class="contacto-item"><h3>✉️ Email</h3><p>info@peluqueria.com</p></div>
+            <div class="contacto-item"><h3>📍 Dirección</h3><p>Calle Principal, 123</p></div>
         </div>
         <form id="formContacto" style="margin-top: 30px;">
             <h3>Envíanos un mensaje</h3>
@@ -276,6 +329,7 @@ $productos = $conn->query("SELECT id, nombre, descripcion, precio, imagen FROM p
             <button type="submit" style="background:var(--accent-color); color:white; border:none; padding:10px 20px; border-radius:30px;">Enviar mensaje</button>
         </form>
         <div id="mensajeContacto" style="margin-top:15px; text-align:center;"></div>
+        <br><br>
     </section>
 
 </div>
@@ -283,6 +337,12 @@ $productos = $conn->query("SELECT id, nombre, descripcion, precio, imagen FROM p
 <?php include "../includes/footer.php"; ?>
 <script src="../assets/js/carrito.js"></script>
 <script>
+    // ---------- función para redirigir al login ----------
+    function mostrarMensajeLogin() {
+        alert("Debes iniciar sesión o registrarte para comprar productos.");
+        window.location.href = "../auth/login.php";
+    }
+
     // ---------- MOSTRAR/OCULTAR SECCIONES (menú) ----------
     const btnProductos = document.getElementById('menuMostrarProductos');
     const btnServicios = document.getElementById('menuMostrarServicios');
@@ -358,21 +418,30 @@ $productos = $conn->query("SELECT id, nombre, descripcion, precio, imagen FROM p
         });
     }
 
-    // ---------- CARRITO EMERGENTE ----------
+    // ---------- CARRITO EMERGENTE (solo si el usuario está logueado) ----------
+    <?php if ($usuario_logueado): ?>
     const btnCarrito = document.getElementById('menuCarritoPopup');
     if (btnCarrito) {
         btnCarrito.addEventListener('click', (e) => {
             e.preventDefault();
             const ancho = 800;
             const alto = 600;
-            // Margen desde la derecha y desde la parte superior (debajo del header)
             const margenDerecha = 20;
-            const margenSuperior = 80;  // Ajusta según la altura de tu header
+            const margenSuperior = 80;
             const izquierda = window.screen.width - ancho - margenDerecha;
             const arriba = margenSuperior;
             window.open('../user/carrito.php', 'carritoPopup', `width=${ancho},height=${alto},left=${izquierda},top=${arriba},resizable=yes,scrollbars=yes`);
         });
     }
+    <?php else: ?>
+    const btnCarrito = document.getElementById('menuCarritoPopup');
+    if (btnCarrito) {
+        btnCarrito.addEventListener('click', (e) => {
+            e.preventDefault();
+            mostrarMensajeLogin();
+        });
+    }
+    <?php endif; ?>
 
     // ---------- FORMULARIO DE CONTACTO (DEMO) ----------
     document.getElementById('formContacto')?.addEventListener('submit', (e) => {
@@ -384,6 +453,7 @@ $productos = $conn->query("SELECT id, nombre, descripcion, precio, imagen FROM p
     });
 
     // ---------- RESERVA DE CITA AJAX ----------
+    <?php if ($usuario_logueado): ?>
     const formReserva = document.getElementById('formReservaInicio');
     if (formReserva) {
         formReserva.addEventListener('submit', async (e) => {
@@ -397,11 +467,10 @@ $productos = $conn->query("SELECT id, nombre, descripcion, precio, imagen FROM p
                 if (data.success) {
                     mensajeDiv.innerHTML = '<span style="color:green;"> ' + data.message + '</span>';
                     formReserva.reset();
-                    // limpiar campos Flatpickr
                     if (document.getElementById('fecha_cita')) document.getElementById('fecha_cita').value = '';
                     if (document.getElementById('hora_cita')) document.getElementById('hora_cita').value = '';
                 } else {
-                    mensajeDiv.innerHTML = '<span style="color:red;">❌ ' + data.message + '</span>';
+                    mensajeDiv.innerHTML = '<span style="color:red;"> ' + data.message + '</span>';
                 }
             } catch (err) {
                 mensajeDiv.innerHTML = '<span style="color:red;">Error de conexión. Inténtalo de nuevo.</span>';
@@ -409,6 +478,7 @@ $productos = $conn->query("SELECT id, nombre, descripcion, precio, imagen FROM p
             setTimeout(() => mensajeDiv.innerHTML = '', 5000);
         });
     }
+    <?php endif; ?>
 
     // ---------- FLATPICKR para fecha y hora ----------
     if (document.getElementById('fecha_cita')) {

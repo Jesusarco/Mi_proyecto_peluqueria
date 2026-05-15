@@ -132,7 +132,6 @@ $esDashboard = isset($esDashboard) && $esDashboard;
         }
 
         .menu-interno-header a::after {
-            content: '';
             position: absolute;
             bottom: 0;
             left: 50%;
@@ -153,7 +152,6 @@ $esDashboard = isset($esDashboard) && $esDashboard;
 
         /* Separador dorado entre items */
         .menu-interno-header a + a::before {
-            content: '·';
             position: absolute;
             left: -2px;
             color: rgba(201,168,76,0.25);
@@ -166,7 +164,6 @@ $esDashboard = isset($esDashboard) && $esDashboard;
         }
 
         .menu-interno-header a#menuCarritoPopup::before {
-            content: '◻';
             font-size: 0.9rem;
             color: var(--gold);
         }
@@ -200,12 +197,18 @@ $esDashboard = isset($esDashboard) && $esDashboard;
         <a href="<?= $inicio ?>" class="salon-brand">Pelu<span>quer&iacute;a</span></a>
         <div class="nav-group">
             <?php if ($esDashboard): ?>
+                <!-- Dashboard: nombre de admin y botón Salir -->
                 <span class="nav-user-name"><?= htmlspecialchars($_SESSION['nombre'] ?? 'Admin') ?></span>
                 <a href="../auth/logout.php" class="btn-salir">Salir</a>
             <?php else: ?>
                 <?php if (isset($_SESSION['usuario_id'])): ?>
+                    <!-- Usuario normal logueado: nombre y botón Salir -->
                     <span class="nav-user-name"><?= htmlspecialchars($_SESSION['nombre'] ?? '') ?></span>
                     <a href="../auth/logout.php" class="btn-salir">Salir</a>
+                <?php else: ?>
+                    <!-- Visitante sin sesión: botón de Iniciar sesión -->
+                    <a href="../auth/login.php" class="btn-salir">Iniciar sesión</a>
+                    <a href="../auth/register_form.php" class="btn-salir">Regístrarse</a>
                 <?php endif; ?>
             <?php endif; ?>
         </div>

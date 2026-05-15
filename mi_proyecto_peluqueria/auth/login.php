@@ -17,17 +17,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($usuario && password_verify($password, $usuario['password'])) {
-            session_regenerate_id(true); // Prevenir fixation
+            session_regenerate_id(true);
             $_SESSION['usuario_id'] = $usuario['id'];
             $_SESSION['rol'] = $usuario['rol'];
             $_SESSION['nombre'] = $usuario['nombre'];
 
-            //Redirección en fución del rol
             $redirect = ($usuario['rol'] == 'admin' || $usuario['rol'] == 'superadmin') ? '../admin/dashboard.php' : '../user/inicio.php';
             header("Location: $redirect");
             exit();
         } else {
-            $error = "Credenciales incorrectas"; // Mensaje genérico por seguridad
+            $error = "Credenciales incorrectas";
         }
     }
 }
@@ -38,298 +37,292 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acceso — Peluquería</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
         :root {
-            --gold: #C9A84C;
-            --gold-light: #e8c97a;
-            --dark: #0e0e0c;
-            --dark-2: #161614;
-            --dark-3: #1e1e1b;
-            --cream: #f5f0e8;
-            --error: #c0392b;
+            --forest:   #1c2b1e;
+            --forest-2: #243228;
+            --forest-3: #2e3f32;
+            --moss:     #3a5240;
+            --sage:     #7a9e82;
+            --sage-light:#a8c4ae;
+            --cream:    #f2ede4;
+            --cream-2:  #e8e0d0;
+            --parchment:#d4c9b0;
+            --gold:     #c8a84b;
+            --gold-soft:#e0c97a;
+            --white:    #faf8f3;
+            --text-body:#3a3028;
+            --text-muted:#7a7060;
+            --error:    #b85450;
         }
 
         body {
-            background: var(--dark);
+            background: var(--cream);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: 'Jost', sans-serif;
-            overflow: hidden;
+            font-family: 'DM Sans', sans-serif;
             position: relative;
+            overflow: hidden;
         }
 
-        /* Fondo con textura sutil */
+        /* Botanical background */
         body::before {
             content: '';
             position: fixed;
             inset: 0;
             background:
-                radial-gradient(ellipse 800px 600px at 20% 50%, rgba(201,168,76,0.04) 0%, transparent 70%),
-                radial-gradient(ellipse 600px 800px at 80% 30%, rgba(201,168,76,0.03) 0%, transparent 70%);
+                radial-gradient(ellipse 70% 60% at 10% 20%, rgba(28,43,30,0.06) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 80% at 90% 80%, rgba(58,82,64,0.08) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 50% at 50% 50%, rgba(200,168,75,0.03) 0%, transparent 70%);
             pointer-events: none;
         }
 
-        /* Líneas decorativas de fondo */
+        /* Decorative vertical stripe */
         body::after {
             content: '';
             position: fixed;
-            top: 0; left: 50%;
-            transform: translateX(-50%);
-            width: 1px;
+            top: 0; left: 0;
+            width: 6px;
             height: 100vh;
-            background: linear-gradient(to bottom, transparent, rgba(201,168,76,0.08) 30%, rgba(201,168,76,0.08) 70%, transparent);
-            pointer-events: none;
+            background: linear-gradient(to bottom, var(--moss), var(--gold), var(--moss));
+            opacity: 0.5;
         }
 
         .login-wrapper {
             width: 100%;
-            max-width: 440px;
-            padding: 20px;
+            max-width: 480px;
+            padding: 24px;
             position: relative;
             z-index: 1;
-            animation: fadeUp 0.6s ease both;
+            animation: fadeUp 0.55s cubic-bezier(0.22,1,0.36,1) both;
         }
 
         @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(24px); }
+            from { opacity: 0; transform: translateY(28px); }
             to   { opacity: 1; transform: translateY(0); }
         }
 
-        /* Marca arriba */
         .login-brand {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 44px;
         }
 
         .login-brand a {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 2rem;
-            font-weight: 300;
-            letter-spacing: 0.35em;
-            color: var(--gold);
+            font-family: 'Playfair Display', serif;
+            font-size: 2.2rem;
+            font-weight: 400;
+            color: var(--forest);
             text-decoration: none;
-            text-transform: uppercase;
+            letter-spacing: 0.04em;
         }
 
         .login-brand a em {
-            color: #fff;
+            color: var(--moss);
             font-style: italic;
-            font-weight: 300;
         }
 
         .login-brand-tagline {
-            font-size: 0.65rem;
-            letter-spacing: 0.4em;
+            font-size: 0.62rem;
+            letter-spacing: 0.45em;
             text-transform: uppercase;
-            color: #444440;
+            color: var(--parchment);
             margin-top: 8px;
         }
 
-        /* Tarjeta */
         .login-card {
-            background: var(--dark-2);
-            border: 1px solid rgba(201,168,76,0.15);
-            border-radius: 4px;
-            padding: 48px 44px;
+            background: var(--white);
+            border: 1px solid var(--cream-2);
+            border-radius: 12px;
+            padding: 52px 48px;
+            box-shadow:
+                0 4px 24px rgba(28,43,30,0.06),
+                0 1px 3px rgba(28,43,30,0.04);
             position: relative;
             overflow: hidden;
         }
 
-        /* Esquina decorativa */
+        /* Gold top accent */
         .login-card::before {
             content: '';
             position: absolute;
-            top: 0; right: 0;
-            width: 80px; height: 80px;
-            background: linear-gradient(225deg, rgba(201,168,76,0.08) 0%, transparent 60%);
+            top: 0; left: 48px; right: 48px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold) 30%, var(--gold-soft) 50%, var(--gold) 70%, transparent);
+            border-radius: 0 0 2px 2px;
         }
 
+        /* Subtle leaf motif corner */
         .login-card::after {
-            content: '';
+            content: '✦';
             position: absolute;
-            bottom: 0; left: 0;
-            width: 60px; height: 60px;
-            background: linear-gradient(45deg, rgba(201,168,76,0.05) 0%, transparent 60%);
+            bottom: 20px; right: 24px;
+            font-size: 1.2rem;
+            color: rgba(200,168,75,0.12);
+            pointer-events: none;
         }
 
-        /* Título */
-        .login-title {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 1.6rem;
+        .login-heading {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.75rem;
             font-weight: 400;
-            color: #fff;
-            margin-bottom: 6px;
-            letter-spacing: 0.05em;
+            color: var(--forest);
+            margin-bottom: 4px;
         }
 
-        .login-subtitle {
+        .login-subheading {
             font-size: 0.75rem;
-            font-weight: 300;
-            letter-spacing: 0.15em;
-            color: #555550;
+            letter-spacing: 0.18em;
             text-transform: uppercase;
+            color: var(--parchment);
             margin-bottom: 36px;
             padding-bottom: 28px;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
+            border-bottom: 1px solid var(--cream-2);
         }
 
         /* Error */
         .login-error {
+            background: rgba(184,84,80,0.07);
+            border: 1px solid rgba(184,84,80,0.2);
+            border-left: 3px solid var(--error);
+            color: #8b3532;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 0.84rem;
+            font-weight: 300;
+            margin-bottom: 28px;
             display: flex;
             align-items: center;
             gap: 10px;
-            background: rgba(192,57,43,0.1);
-            border: 1px solid rgba(192,57,43,0.3);
-            border-left: 3px solid var(--error);
-            color: #e07070;
-            padding: 12px 16px;
-            border-radius: 3px;
-            font-size: 0.82rem;
-            font-weight: 300;
-            margin-bottom: 28px;
-            letter-spacing: 0.03em;
         }
 
         .login-error::before {
             content: '!';
-            min-width: 18px;
-            height: 18px;
+            min-width: 20px;
+            height: 20px;
             border-radius: 50%;
-            border: 1px solid #e07070;
-            display: flex;
+            border: 1px solid #b85450;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.7rem;
+            font-size: 0.72rem;
             font-weight: 500;
-            color: #e07070;
+            flex-shrink: 0;
         }
 
-        /* Campo */
         .field {
-            margin-bottom: 24px;
-            position: relative;
+            margin-bottom: 22px;
         }
 
         .field label {
             display: block;
             font-size: 0.67rem;
             font-weight: 500;
-            letter-spacing: 0.25em;
+            letter-spacing: 0.2em;
             text-transform: uppercase;
-            color: #666660;
-            margin-bottom: 10px;
+            color: var(--text-muted);
+            margin-bottom: 9px;
         }
 
         .field input {
             width: 100%;
-            background: var(--dark-3);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-bottom-color: rgba(201,168,76,0.25);
-            border-radius: 3px;
+            background: var(--cream);
+            border: 1px solid var(--cream-2);
+            border-bottom: 2px solid rgba(58,82,64,0.2);
+            border-radius: 6px;
             padding: 13px 16px;
-            font-family: 'Jost', sans-serif;
-            font-size: 0.9rem;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.92rem;
             font-weight: 300;
-            color: #ddddd5;
-            letter-spacing: 0.03em;
+            color: var(--text-body);
             outline: none;
-            transition: all 0.25s ease;
+            transition: all 0.2s ease;
         }
 
         .field input:focus {
-            border-color: rgba(201,168,76,0.5);
-            background: rgba(201,168,76,0.03);
-            box-shadow: 0 0 0 3px rgba(201,168,76,0.05);
-            color: #fff;
+            border-color: var(--moss);
+            border-bottom-color: var(--moss);
+            background: var(--white);
+            box-shadow: 0 0 0 3px rgba(58,82,64,0.07);
         }
 
         .field input::placeholder {
-            color: #3a3a36;
-            font-size: 0.8rem;
+            color: var(--parchment);
+            font-size: 0.85rem;
         }
 
-        /* Botón */
         .btn-login {
             width: 100%;
-            background: transparent;
-            border: 1px solid var(--gold);
-            color: var(--gold);
-            font-family: 'Jost', sans-serif;
-            font-size: 0.72rem;
-            font-weight: 500;
-            letter-spacing: 0.3em;
-            text-transform: uppercase;
+            background: var(--forest);
+            color: var(--cream);
+            border: none;
+            border-radius: 6px;
             padding: 15px 20px;
-            border-radius: 3px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
             cursor: pointer;
-            margin-top: 8px;
+            margin-top: 10px;
+            transition: all 0.25s ease;
             position: relative;
             overflow: hidden;
-            transition: all 0.3s ease;
         }
 
-        .btn-login::before {
+        .btn-login::after {
             content: '';
             position: absolute;
-            top: 0; left: -100%;
-            width: 100%; height: 100%;
-            background: var(--gold);
-            transition: left 0.3s ease;
+            inset: 0;
+            background: var(--moss);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
             z-index: 0;
         }
 
-        .btn-login:hover::before {
-            left: 0;
-        }
+        .btn-login:hover::after { transform: scaleX(1); }
+        .btn-login:hover { box-shadow: 0 4px 16px rgba(28,43,30,0.25); }
 
-        .btn-login:hover {
-            color: var(--dark);
-        }
+        .btn-login span { position: relative; z-index: 1; }
 
-        .btn-login span {
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Link registro */
-        .login-footer {
+        .login-footer-link {
             text-align: center;
             margin-top: 28px;
-            font-size: 0.78rem;
+            font-size: 0.82rem;
             font-weight: 300;
-            color: #444440;
+            color: var(--text-muted);
         }
 
-        .login-footer a {
-            color: var(--gold);
+        .login-footer-link a {
+            color: var(--moss);
             text-decoration: none;
-            letter-spacing: 0.05em;
-            border-bottom: 1px solid transparent;
-            transition: border-color 0.2s;
+            border-bottom: 1px solid rgba(58,82,64,0.3);
+            transition: all 0.2s;
         }
 
-        .login-footer a:hover {
-            border-bottom-color: var(--gold);
+        .login-footer-link a:hover {
+            color: var(--forest);
+            border-bottom-color: var(--forest);
         }
 
-        /* Separador decorativo */
         .ornament {
             text-align: center;
-            color: rgba(201,168,76,0.25);
-            font-size: 0.9rem;
-            letter-spacing: 0.4em;
-            margin: 20px 0 0;
+            color: rgba(200,168,75,0.35);
+            letter-spacing: 0.5em;
+            font-size: 0.8rem;
+            margin-top: 22px;
             user-select: none;
         }
 
         @media (max-width: 480px) {
             .login-card { padding: 36px 28px; }
-            .login-brand a { font-size: 1.6rem; }
+            .login-brand a { font-size: 1.8rem; }
         }
     </style>
 </head>
@@ -338,19 +331,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <div class="login-wrapper">
 
     <div class="login-brand">
-        <div><a href="../index.php">Pelu<em>quer&iacute;a</em></a></div>
-        <div class="login-brand-tagline">Elegancia &amp; Estilo</div>
+        <div><a href="../index.php">Pelu<em>quería</em></a></div>
+        <div class="login-brand-tagline">Estudio &amp; Estilo</div>
     </div>
 
     <div class="login-card">
-
-        <h2 class="login-title">Bienvenido</h2>
-        <p class="login-subtitle">Accede a tu cuenta</p>
+        <h2 class="login-heading">Bienvenido</h2>
+        <p class="login-subheading">Accede a tu cuenta</p>
 
         <?php if ($error): ?>
-            <div class="login-error">
-                <?= htmlspecialchars($error) ?>
-            </div>
+            <div class="login-error"><?= htmlspecialchars($error) ?></div>
         <?php endif; ?>
 
         <form method="POST">
@@ -358,26 +348,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <label for="email">Correo electrónico</label>
                 <input type="email" id="email" name="email" placeholder="tu@email.com" required>
             </div>
-
             <div class="field">
                 <label for="password">Contraseña</label>
                 <input type="password" id="password" name="password" placeholder="••••••••" required>
             </div>
-
-            <button type="submit" class="btn-login">
-                <span>Ingresar</span>
-            </button>
+            <button type="submit" class="btn-login"><span>Ingresar</span></button>
         </form>
 
-        <div class="login-footer">
+        <div class="login-footer-link">
             ¿Sin cuenta todavía? <a href="register_form.php">Regístrate aquí</a>
         </div>
 
         <div class="ornament">— ✦ —</div>
-
     </div>
 
 </div>
-
 </body>
 </html>

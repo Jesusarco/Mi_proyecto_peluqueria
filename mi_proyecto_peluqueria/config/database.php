@@ -2,7 +2,8 @@
 $host = "localhost";
 $dbname = "peluqueria_db";
 $username = "root";
-$password = "root";
+$password = "";
+// $password = "root";
 
 try {
     $conn = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);

@@ -14,16 +14,16 @@ CREATE TABLE usuarios (
     activo BOOLEAN DEFAULT TRUE
 );
 
--- 2. Tabla servicios (con campo activo)
+-- 2. Tabla servicios 
 CREATE TABLE servicios (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     descripcion TEXT,
     precio DECIMAL(10,2) NOT NULL,
-    duracion INT NOT NULL,
+    duracion INT NOT NULL
 );
 
--- 3. Tabla citas (con campo activo)
+-- 3. Tabla citas 
 CREATE TABLE citas (
     id INT AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT NOT NULL,
@@ -46,7 +46,7 @@ CREATE TABLE productos (
     destacado BOOLEAN DEFAULT FALSE
 );
 
--- 5. Tabla pedidos (con campo activo)
+-- 5. Tabla pedidos 
 CREATE TABLE pedidos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT NOT NULL,
@@ -78,20 +78,23 @@ CREATE TABLE gastos (
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE SET NULL
 );
 
+-- 8. Tabla historial de incidencias
+CREATE TABLE IF NOT EXISTS ingresos_historicos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    tipo ENUM('pedido', 'cita') NOT NULL,
+    referencia_id INT NOT NULL,
+    monto DECIMAL(10,2) NOT NULL,
+    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Índices para mejorar rendimiento
 CREATE INDEX idx_citas_fecha ON citas(fecha);
 CREATE INDEX idx_citas_usuario ON citas(usuario_id);
 CREATE INDEX idx_citas_estado ON citas(estado);
 CREATE INDEX idx_pedidos_usuario ON pedidos(usuario_id);
 CREATE INDEX idx_pedidos_fecha ON pedidos(fecha);
-CREATE INDEX idx_pedidos_activo ON pedidos(activo);
 CREATE INDEX idx_productos_nombre ON productos(nombre);
 CREATE INDEX idx_productos_destacado ON productos(destacado);
 CREATE INDEX idx_servicios_nombre ON servicios(nombre);
-CREATE INDEX idx_servicios_activo ON servicios(activo);
 CREATE INDEX idx_gastos_fecha ON gastos(fecha);
 CREATE INDEX idx_gastos_categoria ON gastos(categoria);
-
-
-
-Crear un tabla de historial de pedidos y citas para la base de datos.
