@@ -20,6 +20,7 @@ CREATE TABLE servicios (
     nombre VARCHAR(100) NOT NULL,
     descripcion TEXT,
     precio DECIMAL(10,2) NOT NULL,
+    imagen VARCHAR(255),
     duracion INT NOT NULL
 );
 
