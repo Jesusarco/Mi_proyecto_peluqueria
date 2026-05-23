@@ -103,3 +103,7 @@ CREATE INDEX idx_productos_destacado ON productos(destacado);
 CREATE INDEX idx_servicios_nombre ON servicios(nombre);
 CREATE INDEX idx_gastos_fecha ON gastos(fecha);
 CREATE INDEX idx_gastos_categoria ON gastos(categoria);
+
+
+INSERT INTO usuarios (nombre, email, password, rol, activo) 
+VALUES ('Super Administrador', 'superadmin@peluqueria.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'superadmin', 1);
