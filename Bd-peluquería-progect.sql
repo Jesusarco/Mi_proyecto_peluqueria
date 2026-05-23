@@ -1,4 +1,8 @@
 -- Borrar BD si existe y crear nueva
+
+-- CREATE DATABASE IF NOT EXISTS daw2_jesus;
+ -- USE daw2_jesus;
+
 DROP DATABASE IF EXISTS peluqueria_db;
 CREATE DATABASE peluqueria_db;
 USE peluqueria_db;
