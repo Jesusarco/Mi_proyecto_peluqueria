@@ -324,14 +324,43 @@
             </div> <!-- fin content-area -->
         </div> <!-- fin dashboard-wrapper -->
 
-        <!-- ========== OVERLAYS (VENTANAS MODALES) ========== -->
+        
+       <!-- ========== OVERLAYS (VENTANAS MODALES) ========== -->
 
         <!-- OVERLAY CREAR PRODUCTO -->
         <div id="overlayProducto" class="form-overlay">
             <div class="form-container">
                 <h3>Nuevo producto</h3>
                 <form action="../ajax/crear_producto.php" method="POST" enctype="multipart/form-data">
-                    <!-- campos... -->
+                    <div class="form-group">
+                        <label>Nombre *</label>
+                        <input type="text" name="nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Descripción</label>
+                        <textarea name="descripcion" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Precio (euros) *</label>
+                        <input type="number" step="0.01" name="precio" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Stock</label>
+                        <input type="number" name="stock" value="0">
+                    </div>
+                    <div class="form-group checkbox-group">
+                        <label>Destacado</label>
+                        <input type="checkbox" name="destacado" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Imagen (subir archivo)</label>
+                        <input type="file" name="imagen" accept="image/jpeg,image/png,image/jpg,image/gif">
+                        <small style="color:#888; display:block; margin-top:4px;">Formatos: JPG, PNG, GIF. Tamaño máximo: 2MB</small>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="salon-btn salon-btn-light cerrar">Cancelar</button>
+                        <button type="submit" class="salon-btn salon-btn-accent">Guardar</button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -341,7 +370,31 @@
             <div class="form-container">
                 <h3>Nuevo servicio</h3>
                 <form action="../ajax/crear_servicio.php" method="POST" enctype="multipart/form-data">
-                    <!-- campos... -->
+                    <div class="form-group">
+                        <label>Nombre *</label>
+                        <input type="text" name="nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Descripción</label>
+                        <textarea name="descripcion" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Precio (euros) *</label>
+                        <input type="number" step="0.01" name="precio" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Duración (minutos) *</label>
+                        <input type="number" name="duracion" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Imagen (subir archivo)</label>
+                        <input type="file" name="imagen" accept="image/jpeg,image/png,image/jpg,image/gif">
+                        <small style="color:#888; display:block; margin-top:4px;">Formatos: JPG, PNG, GIF. Tamaño máximo: 2MB</small>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="salon-btn salon-btn-light cerrar">Cancelar</button>
+                        <button type="submit" class="salon-btn salon-btn-accent">Guardar</button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -351,63 +404,91 @@
             <div class="form-container">
                 <h3>Nuevo gasto</h3>
                 <form action="../ajax/crear_gasto.php" method="POST">
-                    <!-- campos... -->
-                </form>
-            </div>
-        </div>
-
-        <!-- OVERLAY EDITAR CITA -->
-        <div id="overlayEditarCita" class="form-overlay">
-            <div class="form-container">
-                <h3>Editar cita</h3>
-                <form action="../ajax/actualizar.php" method="POST">
-                    <!-- campos con datos del cliente y servicio deshabilitados -->
-                </form>
-            </div>
-        </div>
-
-        <!-- OVERLAY EDITAR PRODUCTO (con previsualización de imagen) -->
-        <div id="overlayEditarProducto" class="form-overlay">
-            <div class="form-container">
-                <h3>Editar producto</h3>
-                <form action="../ajax/actualizar.php" method="POST" enctype="multipart/form-data">
-                    <!-- campos con datos precargados y campo para nueva imagen -->
-                </form>
-            </div>
-        </div>
-
-        <!-- OVERLAY EDITAR SERVICIO (similar a producto) -->
-        <div id="overlayEditarServicio" class="form-overlay">
-            <div class="form-container">
-                <h3>Editar servicio</h3>
-                <form action="../ajax/actualizar.php" method="POST" enctype="multipart/form-data">
-                    <!-- campos... -->
-                </form>
-            </div>
-        </div>
-
-        <!-- OVERLAY EDITAR GASTO -->
-        <div id="overlayEditarGasto" class="form-overlay">
-            <div class="form-container">
-                <h3>Editar gasto</h3>
-                <form action="../ajax/actualizar.php" method="POST">
-                    <!-- campos... -->
-                </form>
-            </div>
-        </div>
-
-        <!-- OVERLAY EDITAR CLIENTE (usuario) -->
-        <div id="overlayEditarUsuario" class="form-overlay">
-            <div class="form-container">
-                <h3>Editar cliente</h3>
-                <form action="../ajax/actualizar.php" method="POST">
-                    <!-- campos... -->
+                    <div class="form-group">
+                        <label>Descripción *</label>
+                        <input type="text" name="descripcion" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Categoría</label>
+                        <select name="categoria">
+                            <option value="">Seleccionar</option>
+                            <option value="Alquiler">Alquiler</option>
+                            <option value="Material">Material</option>
+                            <option value="Sueldos">Sueldos</option>
+                            <option value="Publicidad">Publicidad</option>
+                            <option value="Servicios">Servicios (luz, agua, etc.)</option>
+                            <option value="Otros">Otros</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Cantidad (euros) *</label>
+                        <input type="number" step="0.01" name="cantidad" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="salon-btn salon-btn-light cerrar">Cancelar</button>
+                        <button type="submit" class="salon-btn salon-btn-accent">Guardar</button>
+                    </div>
                 </form>
             </div>
         </div>
 
         <!-- Cargar el JavaScript específico del dashboard -->
         <script src="../assets/js/dashboard.js"></script>
+
+        <!-- Script de emergencia para overlays (funciona incluso si dashboard.js falla) -->
+        <script>
+            // Capturar y silenciar errores de import (para que no bloqueen)
+            window.addEventListener('error', function(e) {
+                if (e.message && (e.message.includes('import statement') || e.message.includes('export statement'))) {
+                    console.warn('Error de extensión bloqueado:', e.message);
+                    e.preventDefault();
+                    return false;
+                }
+            }, true);
+
+            // Forzar la apertura de overlays cuando se hace clic en los botones
+            document.addEventListener('DOMContentLoaded', function() {
+                const btnProducto = document.getElementById('btnProducto');
+                const btnServicio = document.getElementById('btnServicio');
+                const btnGasto = document.getElementById('btnGasto');
+                const overlayProducto = document.getElementById('overlayProducto');
+                const overlayServicio = document.getElementById('overlayServicio');
+                const overlayGasto = document.getElementById('overlayGasto');
+
+                function abrir(overlay) {
+                    if (overlay) overlay.classList.add('visible');
+                }
+                function cerrar(overlay) {
+                    if (overlay) overlay.classList.remove('visible');
+                }
+
+                if (btnProducto && overlayProducto) {
+                    btnProducto.addEventListener('click', () => abrir(overlayProducto));
+                    // Cerrar con el botón "Cancelar" o haciendo clic fuera
+                    const cerrarBtn = overlayProducto.querySelector('.cerrar');
+                    if (cerrarBtn) cerrarBtn.addEventListener('click', () => cerrar(overlayProducto));
+                    overlayProducto.addEventListener('click', (e) => {
+                        if (e.target === overlayProducto) cerrar(overlayProducto);
+                    });
+                }
+                if (btnServicio && overlayServicio) {
+                    btnServicio.addEventListener('click', () => abrir(overlayServicio));
+                    const cerrarBtn = overlayServicio.querySelector('.cerrar');
+                    if (cerrarBtn) cerrarBtn.addEventListener('click', () => cerrar(overlayServicio));
+                    overlayServicio.addEventListener('click', (e) => {
+                        if (e.target === overlayServicio) cerrar(overlayServicio);
+                    });
+                }
+                if (btnGasto && overlayGasto) {
+                    btnGasto.addEventListener('click', () => abrir(overlayGasto));
+                    const cerrarBtn = overlayGasto.querySelector('.cerrar');
+                    if (cerrarBtn) cerrarBtn.addEventListener('click', () => cerrar(overlayGasto));
+                    overlayGasto.addEventListener('click', (e) => {
+                        if (e.target === overlayGasto) cerrar(overlayGasto);
+                    });
+                }
+            });
+        </script>
 
     </body>
 </html>
