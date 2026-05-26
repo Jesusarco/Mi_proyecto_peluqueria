@@ -8,7 +8,7 @@
         exit("No autorizado"); 
     }
 
-    // Indicar que estamos en el panel de administración (modifica el estilo del header)
+    // Indicar que estamos en el panel de administración (modifica el estilo desheader)
     $esDashboard = true; 
     include "../includes/header.php";
 
@@ -188,7 +188,7 @@
                                 <td>
                                     <button class="btn-editar-servicio" data-id="<?= $s['id'] ?>" data-nombre="<?= htmlspecialchars($s['nombre']) ?>" data-descripcion="<?= htmlspecialchars($s['descripcion'] ?? '') ?>" data-precio="<?= $s['precio'] ?>" data-duracion="<?= $s['duracion'] ?>" data-imagen="<?= htmlspecialchars($s['imagen'] ?? '') ?>">Editar</button>
                                     <a href="../ajax/eliminar.php?action=servicio&id=<?= $s['id'] ?>" class="btn-eliminar" onclick="return confirm('¿Eliminar servicio?')">Eliminar</a>
-                                </td>
+                                </tr>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -302,7 +302,7 @@
                     </div>
                     <table class="salon-table">
                         <thead>
-                            <tr><th>ID</th><th>Nombre</th><th>Email</th><th>Fecha registro</th><th>Acciones</th></tr>
+                            <tr><th>ID</th><th>Nombre</th><th>Email</th><th>Fecha registro</th><th>Acciones</th></td>
                         </thead>
                         <tbody>
                             <?php foreach($usuarios_clientes as $u): ?>
@@ -324,8 +324,8 @@
             </div> <!-- fin content-area -->
         </div> <!-- fin dashboard-wrapper -->
 
-        
-       <!-- ========== OVERLAYS (VENTANAS MODALES) ========== -->
+
+        <!-- ========== OVERLAYS (VENTANAS MODALES) ========== -->
 
         <!-- OVERLAY CREAR PRODUCTO -->
         <div id="overlayProducto" class="form-overlay">
@@ -427,6 +427,188 @@
                     <div class="form-actions">
                         <button type="button" class="salon-btn salon-btn-light cerrar">Cancelar</button>
                         <button type="submit" class="salon-btn salon-btn-accent">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Overlay EDITAR PRODUCTO -->
+        <div id="overlayEditarProducto" class="form-overlay">
+            <div class="form-container">
+                <h3>Editar producto</h3>
+                <form action="../ajax/actualizar.php" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="action" value="producto">
+                    <input type="hidden" name="id" id="edit_prod_id">
+                    <div class="form-group">
+                        <label>Nombre *</label>
+                        <input type="text" name="nombre" id="edit_prod_nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Descripción</label>
+                        <textarea name="descripcion" id="edit_prod_descripcion" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Precio (euros) *</label>
+                        <input type="number" step="0.01" name="precio" id="edit_prod_precio" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Stock</label>
+                        <input type="number" name="stock" id="edit_prod_stock">
+                    </div>
+                    <div class="form-group checkbox-group">
+                        <label>Destacado</label>
+                        <input type="checkbox" name="destacado" id="edit_prod_destacado" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Imagen actual</label><br>
+                        <img id="edit_prod_img_actual" src="" style="max-width: 100px; max-height: 100px; margin-bottom: 10px; display: none;">
+                        <span id="edit_prod_sin_imagen" style="display: none;">Sin imagen</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Cambiar imagen</label>
+                        <input type="file" name="imagen" accept="image/jpeg,image/png,image/jpg,image/gif">
+                        <small>Si no selecciona una nueva, se mantiene la actual.</small>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="salon-btn salon-btn-light cerrar-editar">Cancelar</button>
+                        <button type="submit" class="salon-btn salon-btn-accent">Guardar cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Overlay EDITAR SERVICIO -->
+        <div id="overlayEditarServicio" class="form-overlay">
+            <div class="form-container">
+                <h3>Editar servicio</h3>
+                <form action="../ajax/actualizar.php" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="action" value="servicio">
+                    <input type="hidden" name="id" id="edit_serv_id">
+                    <div class="form-group">
+                        <label>Nombre *</label>
+                        <input type="text" name="nombre" id="edit_serv_nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Descripción</label>
+                        <textarea name="descripcion" id="edit_serv_descripcion" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Precio (euros) *</label>
+                        <input type="number" step="0.01" name="precio" id="edit_serv_precio" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Duración (minutos) *</label>
+                        <input type="number" name="duracion" id="edit_serv_duracion" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Imagen actual</label><br>
+                        <img id="edit_ser_img_actual" src="" style="max-width: 100px; max-height: 100px; margin-bottom: 10px; display: none;">
+                        <span id="edit_ser_sin_imagen" style="display: none;">Sin imagen</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Cambiar imagen (opcional)</label>
+                        <input type="file" name="imagen" accept="image/jpeg,image/png,image/jpg,image/gif">
+                        <small>Si no selecciona una nueva, se mantiene la actual.</small>
+                        <br>
+                        <small>Solo se permite imágenes de 2 MB de tamaño.</small>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="salon-btn salon-btn-light cerrar-editar">Cancelar</button>
+                        <button type="submit" class="salon-btn salon-btn-accent">Guardar cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Overlay EDITAR GASTO -->
+        <div id="overlayEditarGasto" class="form-overlay">
+            <div class="form-container">
+                <h3>Editar gasto</h3>
+                <form action="../ajax/actualizar.php" method="POST">
+                    <input type="hidden" name="action" value="gasto">
+                    <input type="hidden" name="id" id="edit_gasto_id">
+                    <div class="form-group">
+                        <label>Descripción *</label>
+                        <input type="text" name="descripcion" id="edit_gasto_descripcion" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Categoría</label>
+                        <select name="categoria" id="edit_gasto_categoria">
+                            <option value="">Seleccionar</option>
+                            <option value="Alquiler">Alquiler</option>
+                            <option value="Material">Material</option>
+                            <option value="Sueldos">Sueldos</option>
+                            <option value="Publicidad">Publicidad</option>
+                            <option value="Servicios">Servicios (luz, agua, etc.)</option>
+                            <option value="Otros">Otros</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Cantidad (euros) *</label>
+                        <input type="number" step="0.01" name="cantidad" id="edit_gasto_cantidad" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="salon-btn salon-btn-light cerrar-editar">Cancelar</button>
+                        <button type="submit" class="salon-btn salon-btn-accent">Guardar cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Overlay EDITAR CITA -->
+        <div id="overlayEditarCita" class="form-overlay">
+            <div class="form-container">
+                <h3>Editar cita</h3>
+                <form action="../ajax/actualizar.php" method="POST">
+                    <input type="hidden" name="action" value="cita">
+                    <input type="hidden" name="id" id="edit_cita_id">
+                    <div class="form-group">
+                        <label>Cliente</label>
+                        <input type="text" id="edit_cita_cliente" disabled style="background-color: #f5f5f5;">
+                    </div>
+                    <div class="form-group">
+                        <label>Servicio</label>
+                        <input type="text" id="edit_cita_servicio" disabled style="background-color: #f5f5f5;">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha *</label>
+                        <input type="date" name="fecha" id="edit_cita_fecha" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Hora *</label>
+                        <input type="time" name="hora" id="edit_cita_hora" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="salon-btn salon-btn-light cerrar-editar-cita">Cancelar</button>
+                        <button type="submit" class="salon-btn salon-btn-accent">Guardar cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Overlay EDITAR CLIENTE -->
+        <div id="overlayEditarUsuario" class="form-overlay">
+            <div class="form-container">
+                <h3>Editar cliente</h3>
+                <form action="../ajax/actualizar.php" method="POST">
+                    <input type="hidden" name="action" value="usuario">
+                    <input type="hidden" name="id" id="edit_usuario_id">
+                    <div class="form-group">
+                        <label>Nombre completo *</label>
+                        <input type="text" name="nombre" id="edit_usuario_nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email *</label>
+                        <input type="email" name="email" id="edit_usuario_email" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Nueva contraseña (opcional)</label>
+                        <input type="password" name="password" id="edit_usuario_password" placeholder="Dejar en blanco para no cambiar">
+                        <small>Debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número</small>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="salon-btn salon-btn-light cerrar-editar-usuario">Cancelar</button>
+                        <button type="submit" class="salon-btn salon-btn-accent">Guardar cambios</button>
                     </div>
                 </form>
             </div>
