@@ -1,0 +1,213 @@
+/* assets/css/footer.css */
+.pelu-footer {
+    background: #111110;
+    border-top: 1px solid rgba(201, 168, 76, 0.3);
+    margin-top: 80px;
+    font-family: 'Jost', sans-serif;
+}
+
+.pelu-footer .footer-gold-line {
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #C9A84C 30%, #e8c97a 50%, #C9A84C 70%, transparent);
+    opacity: 0.8;
+}
+
+.pelu-footer .footer-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 70px 40px 50px;
+}
+
+/* Grid principal */
+.pelu-footer .footer-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1.2fr 1.2fr 1.2fr;
+    gap: 50px;
+    margin-bottom: 60px;
+}
+
+/* Columna marca */
+.pelu-footer .footer-brand {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    font-weight: 300;
+    letter-spacing: 0.3em;
+    color: #C9A84C;
+    text-transform: uppercase;
+    margin-bottom: 25px;
+}
+
+.pelu-footer .footer-brand em {
+    color: #fff;
+    font-style: italic;
+}
+
+.pelu-footer .footer-description {
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 300;
+    line-height: 1.7;
+    max-width: 260px;
+    margin: 0 0 20px 0;
+}
+
+.pelu-footer .footer-separator {
+    width: 50px;
+    height: 2px;
+    background: #C9A84C;
+    margin-top: 20px;
+    opacity: 0.7;
+}
+
+/* Títulos de secciones */
+.pelu-footer .footer-title {
+    font-family: 'Jost', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #C9A84C;
+    margin: 0 0 25px 0;
+}
+
+/* Lista de navegación */
+.pelu-footer .footer-nav-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.pelu-footer .footer-nav-list li {
+    margin-bottom: 15px;
+}
+
+.pelu-footer .footer-nav-list a {
+    color: #e0dcd5;
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 400;
+    letter-spacing: 0.03em;
+    transition: color 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pelu-footer .footer-nav-list a:hover {
+    color: #C9A84C;
+}
+
+.pelu-footer .footer-nav-arrow {
+    color: rgba(201, 168, 76, 0.6);
+    font-size: 0.8rem;
+}
+
+/* Horario */
+.pelu-footer .footer-hours {
+    color: #e0dcd5;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 2.2;
+}
+
+.pelu-footer .hours-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+}
+
+.pelu-footer .hours-label {
+    color: #e0dcd5;
+}
+
+.pelu-footer .hours-value {
+    color: #fff;
+}
+
+.pelu-footer .hours-sunday {
+    margin-top: 20px;
+    font-size: 0.9rem;
+    color: #aaa;
+    font-style: italic;
+    letter-spacing: 0.03em;
+}
+
+/* Contacto */
+.pelu-footer .footer-contact {
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 2.2;
+}
+
+.pelu-footer .contact-item {
+    color: #e0dcd5;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.pelu-footer .contact-item-start {
+    color: #e0dcd5;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.pelu-footer .contact-icon {
+    color: #C9A84C;
+    font-size: 1.2rem;
+}
+
+/* Footer bottom */
+.pelu-footer .footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 35px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.pelu-footer .footer-copyright {
+    color: #ffffff;
+    font-size: 0.85rem;
+    font-weight: 300;
+    letter-spacing: 0.08em;
+    margin: 0;
+}
+
+.pelu-footer .footer-credits {
+    color: #ffffff;
+    font-size: 0.8rem;
+    font-weight: 300;
+    letter-spacing: 0.05em;
+    margin: 0;
+    font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .pelu-footer .footer-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+    }
+}
+
+@media (max-width: 600px) {
+    .pelu-footer .footer-container {
+        padding: 50px 25px 35px;
+    }
+    .pelu-footer .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 35px;
+    }
+    .pelu-footer .footer-bottom {
+        flex-direction: column;
+        text-align: center;
+    }
+}
